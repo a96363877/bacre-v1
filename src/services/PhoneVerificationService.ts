@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class PhoneVerificationService {
   static validatePhone(phone: string): boolean {
     const phoneRegex = /^(05)[0-9]{8}$/;

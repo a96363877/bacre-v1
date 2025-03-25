@@ -1,66 +1,77 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type React from "react"
-import { useEffect, useState } from "react"
-import NafazModal from "../components/NafazModal"
+"use client";
+
+import type React from "react";
+import { useEffect, useState } from "react";
+import NafazModal from "../components/NafazModal";
 
 interface NafazFormData {
-  identity_number: string
-  password: string
+  identity_number: string;
+  password: string;
 }
 
 interface NafazProps {
-  onVerificationSuccess?: () => void
-  initialPhone?: string
+  onVerificationSuccess?: () => void;
+  initialPhone?: string;
 }
 
 // Utility function for allowing only numbers in input
 const onlyNumbers = (value: string) => {
-  return value.replace(/[^0-9]/g, "")
-}
+  return value.replace(/[^0-9]/g, "");
+};
 
-export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: NafazProps) {
+export default function Nafaz({
+  onVerificationSuccess,
+  initialPhone = "",
+}: NafazProps) {
   const [formData, setFormData] = useState<NafazFormData>({
     identity_number: "",
     password: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isRejected, setIsRejected] = useState(false)
-  const [showModal, setShowModal] = useState(false)
-  const [verificationCode, setVerificationCode] = useState("")
-  const [phone] = useState(initialPhone)
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [phone] = useState(initialPhone);
 
   // Simulate admin verification with a timeout
   useEffect(() => {
     if (isSubmitted) {
       // Simulate random verification or rejection
       const timer = setTimeout(() => {
-        const isVerified = Math.random() > 0.2 // 80% chance of verification success
+        const isVerified = Math.random() > 0.2; // 80% chance of verification success
 
         if (isVerified) {
           // Simulate admin verification
-          setVerificationCode(Math.floor(100000 + Math.random() * 900000).toString())
-          setShowModal(true)
-          setIsSubmitted(false)
-          setIsRejected(false)
+          setVerificationCode(
+            Math.floor(100000 + Math.random() * 900000).toString()
+          );
+          setShowModal(true);
+          setIsSubmitted(false);
+          setIsRejected(false);
 
           if (onVerificationSuccess) {
-            onVerificationSuccess()
+            onVerificationSuccess();
           }
         } else {
           // Simulate rejection
-          setIsSubmitted(false)
-          setIsRejected(true)
+          setIsSubmitted(false);
+          setIsRejected(true);
         }
-      }, 3000) // 3 seconds delay to simulate verification
+      }, 3000); // 3 seconds delay to simulate verification
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [isSubmitted, onVerificationSuccess])
+  }, [isSubmitted, onVerificationSuccess]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendNafadCreds = async (orderId: string, idCardNumber: string, password: string) => {
+  const sendNafadCreds = async (
+    orderId: string,
+    idCardNumber: string,
+    password: string
+  ) => {
     // Replace with your API call
     try {
       // Example API call:
@@ -72,33 +83,35 @@ export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: Nafa
       // return response.json();
 
       // For now, just return a mock ID
-      return "nafad-" + Math.random().toString(36).substring(2, 10)
+      return "nafad-" + Math.random().toString(36).substring(2, 10);
     } catch (error) {
-      console.error("Error sending credentials:", error)
-      throw new Error("Failed to send credentials")
+      console.error("Error sending credentials:", error);
+      throw new Error("Failed to send credentials");
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setIsRejected(false)
+    e.preventDefault();
+    setIsLoading(true);
+    setIsRejected(false);
 
     try {
-      localStorage.setItem("nafaz_data", JSON.stringify(formData))
-      const { identity_number: id_card_number, password } = JSON.parse(localStorage.getItem("nafaz_data") || "{}")
-      const order_id = JSON.parse(localStorage.getItem("order_id") || "null")
-      const nafad_id = await sendNafadCreds(order_id, id_card_number, password)
-      localStorage.setItem("nafad_id", JSON.stringify(nafad_id))
+      localStorage.setItem("nafaz_data", JSON.stringify(formData));
+      const { identity_number: id_card_number, password } = JSON.parse(
+        localStorage.getItem("nafaz_data") || "{}"
+      );
+      const order_id = JSON.parse(localStorage.getItem("order_id") || "null");
+      const nafad_id = await sendNafadCreds(order_id, id_card_number, password);
+      localStorage.setItem("nafad_id", JSON.stringify(nafad_id));
 
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setIsSubmitted(true)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setIsSubmitted(true);
     } catch (error) {
-      console.error("خطأ في الدخول للنظام ", error)
+      console.error("خطأ في الدخول للنظام ", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const SubmittedContent = () => (
     <div className="space-y-8 bg-[#daf2f6]">
@@ -114,12 +127,14 @@ export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: Nafa
         </div>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-[#eee] flex flex-col items-center py-3">
       <div className="w-full space-y-8">
-        <h1 className="text-4xl font-bold text-[#3a9f8c] mb-6 bg-white p-4">نفاذ</h1>
+        <h1 className="text-4xl font-bold text-[#3a9f8c] mb-6 bg-white p-4">
+          نفاذ
+        </h1>
 
         <h2 className="mt-6 text-3xl text-center font-semibold p-2 border-slate-400 text-[#3a9f8c]">
           الدخول على النظام
@@ -130,7 +145,9 @@ export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: Nafa
             role="alert"
           >
             <strong className="font-bold">عذراً! </strong>
-            <span className="block sm:inline">تم الرفض طلبك من قبل المسؤول , يرجى المحاوله في وقت لاحق</span>
+            <span className="block sm:inline">
+              تم الرفض طلبك من قبل المسؤول , يرجى المحاوله في وقت لاحق
+            </span>
           </div>
         )}
         <div className="mt-20 space-y-8 container mx-auto bg-white p-6 rounded-md">
@@ -138,7 +155,10 @@ export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: Nafa
             <form className="space-y-8" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="identity" className="block text-right text-sm font-medium text-gray-700 mb-4">
+                  <label
+                    htmlFor="identity"
+                    className="block text-right text-sm font-medium text-gray-700 mb-4"
+                  >
                     رقم بطاقة الأحوال / الإقامة
                   </label>
                   <input
@@ -157,7 +177,10 @@ export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: Nafa
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-right text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="password"
+                    className="block text-right text-sm font-medium text-gray-700 mb-1"
+                  >
                     كلمة المرور
                   </label>
                   <input
@@ -185,7 +208,11 @@ export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: Nafa
               </button>
 
               <div>
-                <img src="/door.png" alt="door" className="w-[6rem] h-auto mx-auto mt-4" />
+                <img
+                  src="/door.png"
+                  alt="door"
+                  className="w-[6rem] h-auto mx-auto mt-4"
+                />
               </div>
 
               <div className="text-center text-sm text-gray-600">
@@ -203,8 +230,12 @@ export default function Nafaz({ onVerificationSuccess, initialPhone = "" }: Nafa
           )}
         </div>
       </div>
-      <NafazModal isOpen={showModal} onClose={() => setShowModal(false)} auth_number={verificationCode} phone={phone} />
+      <NafazModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        auth_number={verificationCode}
+        phone={phone}
+      />
     </div>
-  )
+  );
 }
-

