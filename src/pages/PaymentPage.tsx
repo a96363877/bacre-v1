@@ -137,6 +137,7 @@ export default function PaymentPage() {
         setPaymentStatus(storedPaymentStatus);
       }
     }
+    console.log(isloading);
   }, []);
 
   useEffect(() => {
