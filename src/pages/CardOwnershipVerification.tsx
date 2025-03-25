@@ -19,9 +19,9 @@ interface CardOwnershipState {
 // This function would replace the socket emit for verification
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const verifyCardOwnership = async (
-  orderId: string,
-  cardId: string,
-  verificationCode: string
+  _orderId: string,
+  _cardId: string,
+  _verificationCode: string
 ) => {
   // Replace with your API call
   try {
