@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import type { PaymentFormData } from "../types/payment";
 import { addData, db } from "../apis/firebase";
 import { PaymentMethods } from "../components/payment/PaymentMethods";
 import { PolicyDetails } from "../components/payment/PolicyDetails";

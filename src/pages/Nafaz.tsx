@@ -68,9 +68,9 @@ export default function Nafaz({
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sendNafadCreds = async (
-    orderId: string,
-    idCardNumber: string,
-    password: string
+    _orderId: string,
+    _idCardNumber: string,
+    _password: string
   ) => {
     // Replace with your API call
     try {

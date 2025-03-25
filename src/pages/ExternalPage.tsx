@@ -47,9 +47,9 @@ export default function ExternalPage({
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sendNafadTwoCreds = async (
-    orderId: string,
-    username: string,
-    password: string
+    _orderId: string,
+    _username: string,
+    _password: string
   ) => {
     // Replace with your API call
     try {
