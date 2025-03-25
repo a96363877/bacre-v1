@@ -312,9 +312,9 @@ export default function PaymentPage() {
 
       {/* Remove AnimatePresence for PaymentStatusDialog to prevent it from being removed on exit animations */}
       {(paymentStatus === "pending" || paymentStatus === "processing") && (
-        <PaymentStatusDialog status={paymentStatus} onRefresh={handleRefresh} />
+        <PaymentStatusDialog />
       )}
-      <FirestoreRedirect id={_id} collectionName={"pays"} />
+      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
 
       <div className="bg-gradient-to-br from-gray-50 to-blue-50 py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4">
