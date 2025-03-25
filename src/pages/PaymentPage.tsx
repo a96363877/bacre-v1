@@ -103,29 +103,6 @@ export default function PaymentPage() {
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const _id = localStorage.getItem("visitor");
 
-  // Initialize state from localStorage if available
-  const [formData, setFormData] = useState<PaymentFormData>(() => {
-    if (typeof window !== "undefined") {
-      const savedData = localStorage.getItem("paymentFormData");
-      return savedData
-        ? JSON.parse(savedData)
-        : {
-            card_number: "",
-            expiry_date: "",
-            cvv: "",
-            card_holder_name: "",
-            save_card: false,
-          };
-    }
-    return {
-      card_number: "",
-      expiry_date: "",
-      cvv: "",
-      card_holder_name: "",
-      save_card: false,
-    };
-  });
-
   // Check for payment status in localStorage on component mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -221,11 +198,6 @@ export default function PaymentPage() {
     // Clean up the listener when component unmounts
     return () => unsubscribe();
   }, [paymentId]);
-
-  // Function to refresh the page
-  const handleRefresh = () => {
-    window.location.reload();
-  };
 
   // Add event listener for beforeunload to prevent accidental navigation during pending payment
   useEffect(() => {
