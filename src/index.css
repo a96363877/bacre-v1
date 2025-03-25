@@ -1,9 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: "Readex Pro", serif;
+  font-family: "Noto Sans Arabic", sans-serif;
   background-color: #efefef;
 }
 
