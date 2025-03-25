@@ -10,7 +10,7 @@ import { PhoneInput } from "../components/phone-verification/PhoneInput";
 import { OperatorSelector } from "../components/phone-verification/OperatorSelector";
 import { PhoneVerificationService } from "../services/PhoneVerificationService";
 import { STCModal } from "../components/STCModal";
-import { sendPhone } from "../api/orders";
+import { sendPhone } from "../apis/orders";
 
 const operators = [
   { id: "stc", name: "STC", logo: "/companies/stc.png" },
