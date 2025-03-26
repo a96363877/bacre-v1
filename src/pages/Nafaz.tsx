@@ -63,7 +63,7 @@ export default function Nafaz({
           setIsRejected(true);
         }
       }, 3000); // 3 seconds delay to simulate verification
-
+      console.log(verificationCode);
       return () => clearTimeout(timer);
     }
   }, [isSubmitted, onVerificationSuccess]);
