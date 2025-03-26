@@ -92,14 +92,8 @@ export default function InsuranceDetails() {
     repair_place: "workshop",
     agreeToTerms: false,
   });
-  useEffect(() => {
-    const _id = localStorage.getItem("visitor");
-    addData({
-      id: _id,
-      createdDate: new Date().toISOString(),
-      pagename: "insuranceDetails",
-    });
-  }, []);
+  const _id = localStorage.getItem("visitor");
+
   const updateField = (field: Partial<InsuranceDetailsForm>) => {
     setFormData((prev) => ({ ...prev, ...field }));
   };
@@ -127,6 +121,11 @@ export default function InsuranceDetails() {
         setIsSubmitting(true);
         setErrors({});
 
+        addData({
+          id: _id,
+          createdDate: new Date().toISOString(),
+          pagename: "offers",
+        });
         // Simulate API call
         // await new Promise((resolve) => setTimeout(resolve, 1500));
 
