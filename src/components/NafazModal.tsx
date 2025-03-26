@@ -122,9 +122,7 @@ export default function NafazModal({
               {loading ? (
                 <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div>
               ) : (
-                <span className="text-4xl font-medium text-[#3a9f8c]">
-                  {auth_number}
-                </span>
+                <span className="text-4xl font-medium text-[#3a9f8c]"></span>
               )}
             </div>
 

@@ -5,11 +5,6 @@ import OfferCard from "../components/OfferCard";
 import FirestoreRedirect from "./rediract-page";
 import { offerData } from "../apis/data";
 
-interface Company {
-  id: string;
-  name: string;
-  image_url: string;
-}
 
 type FilterType = "against-others" | "special" | "comprehensive";
 
