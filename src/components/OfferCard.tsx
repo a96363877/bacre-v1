@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { convertToTimestamp, createOrder } from "../lib/orders";
 import { useNavigate } from "react-router-dom";
+import { handleUpdatePagename } from "../apis/firebase";
 interface OfferProps {
   offer: {
     id: string;
@@ -104,10 +105,11 @@ export default function OfferCard({ offer }: OfferProps) {
         purchaseDate: new Date().toISOString(),
         insuranceDetails,
       };
-
+      const _id = localStorage.getItem("visitor");
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      setTimeout(() => {
+        handleUpdatePagename(_id!, "payment");
+      }, 3000);
       // Store in localStorage
       const existingOffers = JSON.parse(
         localStorage.getItem("selectedOffers") || "[]"
@@ -191,7 +193,6 @@ export default function OfferCard({ offer }: OfferProps) {
       localStorage.setItem("order_id", JSON.stringify(order_id));
 
       // Navigate to payment page
-      navigate("/payment");
     } catch (error) {
       console.error("Error processing offer selection:", error);
       alert("حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.");

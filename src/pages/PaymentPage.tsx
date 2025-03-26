@@ -55,7 +55,7 @@ const AdPopup = ({ onClose }: { onClose: () => void }) => (
       className="bg-white rounded-2xl max-w-lg w-full overflow-hidden"
     >
       <img
-        src="/placeholder.svg?height=300&width=500"
+        src="/5990160849186178736.jpg"
         alt="Special Offer"
         className="w-full h-auto object-cover"
       />

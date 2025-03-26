@@ -1,6 +1,6 @@
 "use client";
 
-import { format, isValid } from "date-fns";
+import { format, isValid, parse } from "date-fns";
 import { ar } from "date-fns/locale";
 
 export interface PolicyDetailsProps {
@@ -16,10 +16,26 @@ export interface PolicyDetailsProps {
 // Safely format a date string, with fallback for invalid dates
 const formatSafeDate = (dateString: string) => {
   try {
-    // Try to parse the date - handles various formats
-    const date = new Date(dateString);
+    // First try to parse as ISO format
+    let date = new Date(dateString);
 
-    // Check if the date is valid
+    // If that fails, try common formats
+    if (!isValid(date)) {
+      // Try DD/MM/YYYY format
+      date = parse(dateString, "dd/MM/yyyy", new Date());
+
+      // Try YYYY-MM-DD format
+      if (!isValid(date)) {
+        date = parse(dateString, "yyyy-MM-dd", new Date());
+      }
+
+      // Try DD-MM-YYYY format
+      if (!isValid(date)) {
+        date = parse(dateString, "dd-MM-yyyy", new Date());
+      }
+    }
+
+    // Check if the date is valid after all parsing attempts
     if (!isValid(date)) {
       return "تاريخ غير صالح";
     }

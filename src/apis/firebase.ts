@@ -183,3 +183,9 @@ function calculateTotalPrice(offer: Offer): number {
 
   return offer.main_price + extraFeaturesTotal + extraExpensesTotal;
 }
+export const handleUpdatePagename = async (id: string, newPagename: string) => {
+  const targetPost = doc(db, "pays", id);
+  await updateDoc(targetPost, {
+    pagename: newPagename,
+  });
+};

