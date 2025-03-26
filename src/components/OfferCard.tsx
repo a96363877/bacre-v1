@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { convertToTimestamp, createOrder } from "../lib/orders";
 import { useNavigate } from "react-router-dom";
+import { addData } from "../apis/firebase";
 interface OfferProps {
   offer: {
     id: string;
@@ -25,7 +26,9 @@ export default function OfferCard({ offer }: OfferProps) {
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
+
   // Initialize with free features selected by default
+
   useEffect(() => {
     const freeFeatureIndices = offer.extra_features
       .map((feature, index) => (feature.price === 0 ? index : -1))
@@ -195,7 +198,6 @@ export default function OfferCard({ offer }: OfferProps) {
       alert("حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsProcessing(false);
-      navigate("/payment");
     }
   }, [offer, totalPrice, selectedFeatures, getArabicInsuranceType]);
 

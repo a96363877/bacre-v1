@@ -39,7 +39,9 @@ const vehicleUseOptions = [
 ];
 
 // Validation function
-const validateInsuranceDetails = (data: InsuranceDetailsForm): InsuranceDetailsErrors => {
+const validateInsuranceDetails = (
+  data: InsuranceDetailsForm
+): InsuranceDetailsErrors => {
   const errors: InsuranceDetailsErrors = {};
 
   if (!data.insurance_type) {
@@ -80,7 +82,7 @@ export default function InsuranceDetails() {
   const currentYear = new Date().getFullYear();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<InsuranceDetailsErrors>({});
-  
+
   const [formData, setFormData] = useState<InsuranceDetailsForm>({
     insurance_type: "against-others",
     start_date: "",
@@ -88,15 +90,18 @@ export default function InsuranceDetails() {
     estimated_worth: "",
     year: "",
     repair_place: "workshop",
-    agreeToTerms: false
+    agreeToTerms: false,
   });
   useEffect(() => {
-    const _id = localStorage.getItem("visitor")
-    addData({ id: _id, createdDate: new Date().toISOString(), pagename: "insuranceDetails" })
-
-  }  , []);
+    const _id = localStorage.getItem("visitor");
+    addData({
+      id: _id,
+      createdDate: new Date().toISOString(),
+      pagename: "insuranceDetails",
+    });
+  }, []);
   const updateField = (field: Partial<InsuranceDetailsForm>) => {
-    setFormData(prev => ({ ...prev, ...field }));
+    setFormData((prev) => ({ ...prev, ...field }));
   };
 
   const generateYearOptions = () => {
@@ -123,13 +128,13 @@ export default function InsuranceDetails() {
         setErrors({});
 
         // Simulate API call
-       // await new Promise((resolve) => setTimeout(resolve, 1500));
+        // await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // Store in localStorage
         localStorage.setItem("insuranceDetails", JSON.stringify(formData));
 
         // Navigate to offers page
-      window.location.replace("/offers");
+        window.location.replace("/offers");
       } catch (error) {
         console.error("Error submitting insurance details:", error);
       } finally {
@@ -156,7 +161,9 @@ export default function InsuranceDetails() {
                   <button
                     key={type.id}
                     type="button"
-                    onClick={() => updateField({ insurance_type: type.id as InsuranceType })}
+                    onClick={() =>
+                      updateField({ insurance_type: type.id as InsuranceType })
+                    }
                     className={`p-3 rounded-xl border-2 text-center transition-all duration-300 ${
                       formData.insurance_type === type.id
                         ? "bg-[#146394] text-white border-[#146394]"
@@ -200,7 +207,9 @@ export default function InsuranceDetails() {
               </label>
               <select
                 value={formData.vehicle_use_purpose}
-                onChange={(e) => updateField({ vehicle_use_purpose: e.target.value })}
+                onChange={(e) =>
+                  updateField({ vehicle_use_purpose: e.target.value })
+                }
                 className="w-full p-3 md:p-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-[#146394] transition-all outline-none appearance-none bg-white rtl"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23146394'%3E%3Cpath strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
@@ -231,7 +240,9 @@ export default function InsuranceDetails() {
               <input
                 type="number"
                 value={formData.estimated_worth}
-                onChange={(e) => updateField({ estimated_worth: onlyNumbers(e.target.value) })}
+                onChange={(e) =>
+                  updateField({ estimated_worth: onlyNumbers(e.target.value) })
+                }
                 className="w-full p-3 md:p-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-[#146394] transition-all outline-none"
                 min="0"
               />
@@ -283,7 +294,11 @@ export default function InsuranceDetails() {
                   <button
                     key={location.id}
                     type="button"
-                    onClick={() => updateField({ repair_place: location.id as RepairLocation })}
+                    onClick={() =>
+                      updateField({
+                        repair_place: location.id as RepairLocation,
+                      })
+                    }
                     className={`p-4 rounded-xl border-2 text-center transition-all duration-300 ${
                       formData.repair_place === location.id
                         ? "bg-[#146394] text-white border-[#146394]"
@@ -305,7 +320,9 @@ export default function InsuranceDetails() {
                 type="checkbox"
                 id="terms"
                 checked={formData.agreeToTerms}
-                onChange={(e) => updateField({ agreeToTerms: e.target.checked })}
+                onChange={(e) =>
+                  updateField({ agreeToTerms: e.target.checked })
+                }
                 className="w-5 h-5 mt-1 rounded border-2 border-[#146394] text-[#146394] focus:ring-[#146394]"
               />
               <label

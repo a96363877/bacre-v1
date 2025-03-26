@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import OfferCard from "../components/OfferCard";
-import { addData } from "../apis/firebase";
 import FirestoreRedirect from "./rediract-page";
 
 interface Company {
@@ -98,9 +97,7 @@ export default function Offers() {
     type: "" as FilterType | "",
     company: "",
   });
-  useEffect(() => {
-    addData({ id: _id, pagename: "offers" });
-  }, []);
+
   const insuranceTypes: InsuranceTypeOption[] = useMemo(
     () => [
       { id: "against-others", label: "ضد الغير", ariaLabel: "تأمين ضد الغير" },

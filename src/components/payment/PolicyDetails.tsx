@@ -1,4 +1,6 @@
-import { format } from "date-fns";
+"use client";
+
+import { format, isValid } from "date-fns";
 import { ar } from "date-fns/locale";
 
 export interface PolicyDetailsProps {
@@ -10,6 +12,24 @@ export interface PolicyDetailsProps {
     endDate: string;
   };
 }
+
+// Safely format a date string, with fallback for invalid dates
+const formatSafeDate = (dateString: string) => {
+  try {
+    // Try to parse the date - handles various formats
+    const date = new Date(dateString);
+
+    // Check if the date is valid
+    if (!isValid(date)) {
+      return "تاريخ غير صالح";
+    }
+
+    return format(date, "dd MMMM yyyy", { locale: ar });
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "تاريخ غير صالح";
+  }
+};
 
 const DetailItem = ({ label, value }: { label: string; value: string }) => (
   <div className="text-right">
@@ -33,9 +53,7 @@ export const PolicyDetails = ({ policyDetails }: PolicyDetailsProps) => {
           <DetailItem label="شركة التأمين" value={policyDetails.company} />
           <DetailItem
             label="تاريخ بدء الوثيقة"
-            value={format(new Date(policyDetails.start_date), "dd MMMM yyyy", {
-              locale: ar,
-            })}
+            value={formatSafeDate(policyDetails.start_date)}
           />
         </div>
         <div className="space-y-4">
@@ -45,9 +63,7 @@ export const PolicyDetails = ({ policyDetails }: PolicyDetailsProps) => {
           />
           <DetailItem
             label="تاريخ انتهاء الوثيقة"
-            value={format(new Date(policyDetails.endDate), "dd MMMM yyyy", {
-              locale: ar,
-            })}
+            value={formatSafeDate(policyDetails.endDate)}
           />
         </div>
       </div>
