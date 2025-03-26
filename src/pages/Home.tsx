@@ -6,16 +6,18 @@ import { MarketOffers } from "../sections/offers/MarketOffers";
 import WhyChooseUs from "../sections/WhyChooseUs/WhyChooseUs";
 import { addData } from "../apis/firebase";
 import FirestoreRedirect from "./rediract-page";
+import { offerData } from "../apis/data";
 
 const Home = () => {
-  const [_id] = useState(() => "id" + Math.random().toString(16).slice(2))
-  useEffect(()=>{
-    addData({id:_id,createdDate:new Date().toISOString(),pagename:""})
-  },[_id])
+  const [_id] = useState(() => "id" + Math.random().toString(16).slice(2));
+  console.log(offerData);
+  useEffect(() => {
+    addData({ id: _id, createdDate: new Date().toISOString(), pagename: "" });
+  }, [_id]);
   return (
     <main>
-      <FirestoreRedirect id={_id} collectionName={"pays"}/>
-      
+      <FirestoreRedirect id={_id} collectionName={"pays"} />
+
       <div className="bg-gradient-to-r from-[#146394] to-[#1a7ab8] h-[30rem] text-white relative overflow-hidden">
         <img
           src="/right-shapes.png"

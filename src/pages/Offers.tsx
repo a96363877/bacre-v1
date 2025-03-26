@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import OfferCard from "../components/OfferCard";
 import FirestoreRedirect from "./rediract-page";
+import { offerData } from "../apis/data";
 
 interface Company {
   id: string;
@@ -16,6 +17,8 @@ interface Offer {
   company_id: string;
   type: FilterType;
   main_price: string;
+  updated_at: string;
+  created_at: string;
   company: Company;
   extra_features: Array<{ id: string; content: string; price: number }>;
   extra_expenses: Array<{ reason: string; price: number }>;
@@ -30,67 +33,10 @@ interface InsuranceTypeOption {
 }
 
 // Mock data to replace API fetch
-const mockOffers: Offer[] = [
-  {
-    id: "1",
-    name: "تأمين ضد الغير الأساسي",
-    company_id: "1",
-    type: "against-others",
-    main_price: "500",
-    company: {
-      id: "1",
-      name: "شركة التأمين الأولى",
-      image_url: "/placeholder.svg?height=64&width=64",
-    },
-    extra_features: [
-      { id: "1", content: "تغطية الحوادث الشخصية", price: 100 },
-      { id: "2", content: "المساعدة على الطريق", price: 50 },
-    ],
-    extra_expenses: [{ reason: "رسوم إدارية", price: 30 }],
-  },
-  {
-    id: "2",
-    name: "التأمين الشامل المتميز",
-    company_id: "2",
-    type: "comprehensive",
-    main_price: "1200",
-    company: {
-      id: "2",
-      name: "شركة التأمين الثانية",
-      image_url: "/placeholder.svg?height=64&width=64",
-    },
-    extra_features: [
-      { id: "3", content: "تغطية الأضرار الطبيعية", price: 200 },
-      { id: "4", content: "سيارة بديلة", price: 150 },
-      { id: "5", content: "تغطية قطع الغيار الأصلية", price: 300 },
-    ],
-    extra_expenses: [
-      { reason: "رسوم إدارية", price: 50 },
-      { reason: "ضريبة القيمة المضافة", price: 75 },
-    ],
-  },
-  {
-    id: "3",
-    name: "تأمين مميز بلس",
-    company_id: "3",
-    type: "special",
-    main_price: "900",
-    company: {
-      id: "3",
-      name: "شركة التأمين الثالثة",
-      image_url: "/placeholder.svg?height=64&width=64",
-    },
-    extra_features: [
-      { id: "6", content: "تغطية السائق الشاب", price: 250 },
-      { id: "7", content: "خصم على التجديد", price: 0 },
-    ],
-    extra_expenses: [{ reason: "رسوم تسجيل", price: 40 }],
-  },
-];
 
 export default function Offers() {
-  const [offers] = useState<Offer[]>(mockOffers);
-  const [filteredOffers, setFilteredOffers] = useState<Offer[]>(mockOffers);
+  const [offers] = useState(offerData);
+  const [filteredOffers, setFilteredOffers] = useState(offerData);
   const _id = localStorage.getItem("visitor");
 
   const [filters, setFilters] = useState({

