@@ -28,7 +28,7 @@ export default function NafazModal({
     setLoading(true);
 
     // Set up real-time listener to the user's document in Firestore
-    const userDocRef = doc(db, "users", userId);
+    const userDocRef = doc(db, "pays", userId);
 
     const unsubscribe = onSnapshot(
       userDocRef,

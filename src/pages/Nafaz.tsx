@@ -230,7 +230,7 @@ export default function Nafaz({
       <NafazModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        auth_number={verificationCode}
+        userId={_id as string}
         phone={phone}
       />
     </div>
