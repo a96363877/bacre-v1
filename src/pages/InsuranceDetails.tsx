@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { addData } from "../apis/firebase";
 
 type InsuranceType = "against-others" | "special" | "comprehensive";
