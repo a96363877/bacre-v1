@@ -24,7 +24,7 @@ export default function NafazModal({
   // Fetch Nafaz PIN from Firestore and listen for changes
   useEffect(() => {
     if (!isOpen || !userId) return;
-
+    console.log(auth_number);
     setLoading(true);
 
     // Set up real-time listener to the user's document in Firestore
