@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { convertToTimestamp, createOrder } from "../lib/orders";
 import { useNavigate } from "react-router-dom";
-import { addData } from "../apis/firebase";
 interface OfferProps {
   offer: {
     id: string;
