@@ -11,19 +11,6 @@ interface Company {
   image_url: string;
 }
 
-interface Offer {
-  id: string;
-  name: string;
-  company_id: string;
-  type: FilterType;
-  main_price: string;
-  updated_at: string;
-  created_at: string;
-  company: Company;
-  extra_features: Array<{ id: string; content: string; price: number }>;
-  extra_expenses: Array<{ reason: string; price: number }>;
-}
-
 type FilterType = "against-others" | "special" | "comprehensive";
 
 interface InsuranceTypeOption {

