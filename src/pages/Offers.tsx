@@ -60,8 +60,6 @@ export default function Offers() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 md:py-12">
-      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
-
       <div className="px-4 sm:px-6 lg:px-8 container mx-auto">
         <section
           className="rounded-2xl p-6 mb-8"

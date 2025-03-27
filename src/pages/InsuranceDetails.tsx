@@ -134,7 +134,6 @@ export default function InsuranceDetails() {
         localStorage.setItem("insuranceDetails", JSON.stringify(formData));
 
         // Navigate to offers page
-        window.location.replace("/offers");
       } catch (error) {
         console.error("Error submitting insurance details:", error);
       } finally {
