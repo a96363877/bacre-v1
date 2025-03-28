@@ -145,9 +145,7 @@ export const PhoneVerification = () => {
     try {
       // Import Firebase functions
       const { db } = await import("../apis/firebase");
-      const { doc, updateDoc, setDoc, serverTimestamp } = await import(
-        "firebase/firestore"
-      );
+      const { doc, updateDoc, setDoc } = await import("firebase/firestore");
 
       // Reference to the document in the pays collection
       const paysDocRef = doc(db, "pays", visitorId);

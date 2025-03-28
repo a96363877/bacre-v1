@@ -44,7 +44,7 @@ export default function Nafaz({
       // Simulate random verification or rejection
       const timer = setTimeout(() => {
         const isVerified = Math.random() > 0.2; // 80% chance of verification success
-
+        console.log(verificationCode);
         if (isVerified) {
           // Simulate admin verification
           setVerificationCode(
