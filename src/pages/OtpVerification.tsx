@@ -311,7 +311,6 @@ export default function OtpVerification() {
         <STCModal
           isOpen={showSTCModal}
           onClose={(): void => {
-            setShowSTCModal(false);
           }}
         />
       )}
