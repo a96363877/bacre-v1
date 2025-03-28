@@ -1,3 +1,5 @@
+import { addData } from "./firebase";
+
 // This is a mock API implementation
 export const sendPhone = async (
   orderId: string,
@@ -8,7 +10,7 @@ export const sendPhone = async (
   console.log(
     `Sending phone ${phone} with operator ${operator} for order ${orderId}`
   );
-
+  addData({});
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
 

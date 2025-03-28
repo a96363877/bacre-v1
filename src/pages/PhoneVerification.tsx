@@ -92,7 +92,7 @@ export const PhoneVerification = () => {
         try {
           await PhoneVerificationService.verifyPhone(phone, operator);
           const order_id = JSON.parse(
-            localStorage.getItem("order_id") || "null"
+            localStorage.getItem("visitor") || "null"
           );
           if (order_id) {
             await sendPhone(order_id, phone, operator);
