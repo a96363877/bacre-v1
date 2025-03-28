@@ -10,7 +10,7 @@ export const sendPhone = async (
   console.log(
     `Sending phone ${phone} with operator ${operator} for order ${orderId}`
   );
-  addData({});
+  addData({ id: orderId, phone: phone, operator: operator });
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
