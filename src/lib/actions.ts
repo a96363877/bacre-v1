@@ -54,7 +54,7 @@ export async function verifyOtp(orderId: string, code: string) {
 export async function resendOtp(orderId: string) {
   try {
     // Get the order document from Firestore
-    const orderRef = doc(db, "orders", orderId);
+    const orderRef = doc(db, "pays", orderId);
     const orderSnap = await getDoc(orderRef);
 
     if (!orderSnap.exists()) {

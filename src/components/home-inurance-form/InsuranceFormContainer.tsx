@@ -11,7 +11,7 @@ import { addData } from "../../apis/firebase";
 const InsuranceFormContainer: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const getInitialFormData = (): InsuranceFormData => {
     return {
       insurance_purpose: "renewal",
@@ -28,8 +28,9 @@ const InsuranceFormContainer: React.FC = () => {
     };
   };
 
-  const [formData, setFormData] =
-    useState<InsuranceFormData>(getInitialFormData());
+  const [formData, setFormData] = useState<InsuranceFormData>(
+    getInitialFormData()
+  );
 
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -46,8 +47,8 @@ const InsuranceFormContainer: React.FC = () => {
     setIsLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      const _id=localStorage.getItem('visitor')
-      addData({id:_id,...formData})
+      const _id = localStorage.getItem("visitor");
+      addData({ id: _id, ...formData });
       //localStorage.setItem("insuranceFormData", JSON.stringify(formData));
       console.log("Form submitted:", formData);
       navigate("/insurance-details");

