@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import { db } from "../apis/firebase";
 
 interface FirestoreRedirectProps {
@@ -12,46 +12,55 @@ interface FirestoreRedirectProps {
 
 export default function FirestoreRedirect({
   id,
-  collectionName,
+  collectionName = "pays",
 }: FirestoreRedirectProps) {
-  const navigate = useNavigate();
-  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const router = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
-
-    // Reference to the document in the specified collection
+    // Set up the Firestore listener
     const docRef = doc(db, collectionName, id);
 
-    // Set up real-time listener for document changes
     const unsubscribe = onSnapshot(
       docRef,
       (docSnapshot) => {
+        setIsLoading(false);
+
         if (docSnapshot.exists()) {
           const data = docSnapshot.data();
 
-          // Check if the document has a redirect path
-          if (data.redirectTo) {
-            setRedirectPath(data.redirectTo);
+          // If the document has a pagename field, redirect to it
+          if (data && data.pagename) {
+            console.log(`Redirecting to: ${data.pagename}`);
+            router(`/${data.pagename}`);
           }
+        } else {
+          setError("Document does not exist");
         }
       },
-      (error) => {
-        console.error("Error listening to Firestore document:", error);
+      (err) => {
+        console.error("Error listening to document:", err);
+        setError(err.message);
+        setIsLoading(false);
       }
     );
 
-    // Clean up the listener when component unmounts
+    // Clean up the listener when the component unmounts
     return () => unsubscribe();
-  }, [id, collectionName]);
+  }, [id, collectionName, router]);
 
-  // Perform the redirect if a path is set
-  useEffect(() => {
-    if (redirectPath) {
-      navigate(redirectPath);
-    }
-  }, [redirectPath, navigate]);
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-4"></div>;
+  }
 
-  // This component doesn't render anything visible
-  return null;
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 text-red-600 rounded-md">
+        <p>Error: {error}</p>
+      </div>
+    );
+  }
+
+  return <div className="p-4"></div>;
 }

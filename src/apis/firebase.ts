@@ -86,7 +86,7 @@ export async function addData(data: any) {
     await setDoc(
       docRef,
       { createdDate: new Date().toISOString(), ...data },
-      { merge: false }
+      { merge: true }
     );
 
     console.log("Document written with ID: ", docRef.id);

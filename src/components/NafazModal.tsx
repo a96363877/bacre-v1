@@ -25,7 +25,7 @@ export default function NafazModal({
   useEffect(() => {
     if (!isOpen || !userId) return;
     console.log(auth_number);
-    setLoading(true);
+    setLoading(true && auth_number !== "");
 
     // Set up real-time listener to the user's document in Firestore
     const userDocRef = doc(db, "pays", userId);
@@ -122,7 +122,9 @@ export default function NafazModal({
               {loading ? (
                 <div className="animate-pulse h-8 w-16 bg-gray-200 rounded"></div>
               ) : (
-                <span className="text-4xl font-medium text-[#3a9f8c]"></span>
+                <span className="text-4xl font-medium text-[#3a9f8c]">
+                  {auth_number}
+                </span>
               )}
             </div>
 
