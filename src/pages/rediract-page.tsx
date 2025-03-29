@@ -1,70 +1,57 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { doc, onSnapshot } from "firebase/firestore"
-import { useNavigate } from "react-router-dom"
-import { db } from "../apis/firebase"
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../apis/firebase";
 
 interface FirestoreRedirectProps {
-  id: string
-  collectionName: string
+  id: string;
+  collectionName: string;
 }
 
-export default function FirestoreRedirect({ id, collectionName = "pays" }: FirestoreRedirectProps) {
-  const router = useNavigate()
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default function FirestoreRedirect({
+  id,
+  collectionName,
+}: FirestoreRedirectProps) {
+  const navigate = useNavigate();
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
   useEffect(() => {
-    // Set up the Firestore listener
-    const docRef = doc(db, collectionName, id)
+    if (!id) return;
 
+    // Reference to the document in the specified collection
+    const docRef = doc(db, collectionName, id);
+
+    // Set up real-time listener for document changes
     const unsubscribe = onSnapshot(
       docRef,
       (docSnapshot) => {
-        setIsLoading(false)
-
         if (docSnapshot.exists()) {
-          const data = docSnapshot.data()
+          const data = docSnapshot.data();
 
-          // If the document has a pagename field, redirect to it
-          if (data && data.pagename) {
-            console.log(`Redirecting to: ${data.pagename}`)
-            router(`/${data.pagename}`)
+          // Check if the document has a redirect path
+          if (data.redirectTo) {
+            setRedirectPath(data.redirectTo);
           }
-        } else {
-          setError("Document does not exist")
         }
       },
-      (err) => {
-        console.error("Error listening to document:", err)
-        setError(err.message)
-        setIsLoading(false)
-      },
-    )
+      (error) => {
+        console.error("Error listening to Firestore document:", error);
+      }
+    );
 
-    // Clean up the listener when the component unmounts
-    return () => unsubscribe()
-  }, [id, collectionName, router])
+    // Clean up the listener when component unmounts
+    return () => unsubscribe();
+  }, [id, collectionName]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-4">
-      </div>
-    )
-  }
+  // Perform the redirect if a path is set
+  useEffect(() => {
+    if (redirectPath) {
+      navigate(redirectPath);
+    }
+  }, [redirectPath, navigate]);
 
-  if (error) {
-    return (
-      <div className="p-4 bg-red-50 text-red-600 rounded-md">
-        <p>Error: {error}</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="p-4">
-    </div>
-  )
+  // This component doesn't render anything visible
+  return null;
 }
-
