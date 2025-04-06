@@ -1,62 +1,56 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { convertToTimestamp, createOrder } from "../lib/orders";
-import { handleUpdatePagename } from "../apis/firebase";
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+import {  updateStaute } from "@/lib/firebase"
+
 interface OfferProps {
   offer: {
-    id: string;
-    name: string;
-    type: string;
-    main_price: string;
+    id: string
+    name: string
+    type: string
+    main_price: string
     company: {
-      name: string;
-      image_url: string;
-    };
-    extra_features: Array<{ id: string; content: string; price: number }>;
-    extra_expenses: Array<{ reason: string; price: number }>;
-  };
+      name: string
+      image_url: string
+    }
+    extra_features: Array<{ id: string; content: string; price: number }>
+    extra_expenses: Array<{ reason: string; price: number }>
+  }
 }
 
 export default function OfferCard({ offer }: OfferProps) {
-  const [selectedFeatures, setSelectedFeatures] = useState<number[]>([]);
-  const [totalPrice, setTotalPrice] = useState(
-    Number.parseFloat(offer.main_price)
-  );
-  const [isProcessing, setIsProcessing] = useState(false);
+  const router = useRouter()
+  const [selectedFeatures, setSelectedFeatures] = useState<number[]>([])
+  const [totalPrice, setTotalPrice] = useState(Number.parseFloat(offer.main_price))
+  const [isProcessing, setIsProcessing] = useState(false)
 
   // Initialize with free features selected by default
-
   useEffect(() => {
     const freeFeatureIndices = offer.extra_features
       .map((feature, index) => (feature.price === 0 ? index : -1))
-      .filter((index) => index !== -1);
-    setSelectedFeatures(freeFeatureIndices);
-  }, [offer.extra_features]);
+      .filter((index) => index !== -1)
+    setSelectedFeatures(freeFeatureIndices)
+  }, [offer.extra_features])
 
   // Calculate total price based on selected features
   const calculateTotalPrice = useCallback(() => {
-    const basePrice = Number.parseFloat(offer.main_price);
+    const basePrice = Number.parseFloat(offer.main_price)
     const featuresPrice = selectedFeatures.reduce((total, index) => {
-      return total + offer.extra_features[index].price;
-    }, 0);
-    return basePrice + featuresPrice;
-  }, [offer.main_price, selectedFeatures, offer.extra_features]);
+      return total + offer.extra_features[index].price
+    }, 0)
+    return basePrice + featuresPrice
+  }, [offer.main_price, selectedFeatures, offer.extra_features])
 
   // Update total price when selected features change
   useEffect(() => {
-    setTotalPrice(calculateTotalPrice());
-  }, [selectedFeatures, calculateTotalPrice]);
+    setTotalPrice(calculateTotalPrice())
+  }, [selectedFeatures, calculateTotalPrice])
 
   // Handle feature selection/deselection
-  const handleFeatureSelection = useCallback(
-    (index: number, checked: boolean) => {
-      setSelectedFeatures((prev) =>
-        checked ? [...prev, index] : prev.filter((i) => i !== index)
-      );
-    },
-    []
-  );
+  const handleFeatureSelection = useCallback((index: number, checked: boolean) => {
+    setSelectedFeatures((prev) => (checked ? [...prev, index] : prev.filter((i) => i !== index)))
+  }, [])
 
   // Get Arabic insurance type name
   const getArabicInsuranceType = useMemo(
@@ -65,27 +59,21 @@ export default function OfferCard({ offer }: OfferProps) {
         "against-others": "ضد الغير",
         comprehensive: "شامل",
         special: "مميز",
-      };
-      return types[type as keyof typeof types] || type;
+      }
+      return types[type as keyof typeof types] || type
     },
-    []
-  );
+    [],
+  )
 
   // Handle offer selection and navigate to payment
   const handleOfferSelection = useCallback(async () => {
-    setIsProcessing(true);
+    setIsProcessing(true)
 
     try {
       // Get insurance details from localStorage
-      const insuranceDetails = JSON.parse(
-        localStorage.getItem("insuranceDetails") || "{}"
-      );
+      const insuranceDetails = JSON.parse(localStorage.getItem("insuranceDetails") || "{}")
 
-      const endDate = new Date(
-        new Date().setFullYear(new Date().getFullYear() + 1)
-      )
-        .toISOString()
-        .split("T")[0];
+      const endDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0]
 
       // Create selected offer data
       const selectedOfferData = {
@@ -102,18 +90,17 @@ export default function OfferCard({ offer }: OfferProps) {
         company: offer.company,
         purchaseDate: new Date().toISOString(),
         insuranceDetails,
-      };
-      const _id = localStorage.getItem("visitor");
+      }
+      const _id = localStorage.getItem("visitor")
       // Simulate API call
-      setTimeout(() => {
-        handleUpdatePagename(_id!, "payment");
-      }, 3000);
+      if (_id) {
+        updateStaute('idle',_id)
+      }
+
       // Store in localStorage
-      const existingOffers = JSON.parse(
-        localStorage.getItem("selectedOffers") || "[]"
-      );
-      existingOffers.push(selectedOfferData);
-      localStorage.setItem("selectedOffers", JSON.stringify(existingOffers));
+      const existingOffers = JSON.parse(localStorage.getItem("selectedOffers") || "[]")
+      existingOffers.push(selectedOfferData)
+      localStorage.setItem("selectedOffers", JSON.stringify(existingOffers))
 
       // Store payment details in localStorage instead of Redux
       const paymentDetails = {
@@ -122,82 +109,25 @@ export default function OfferCard({ offer }: OfferProps) {
           company: offer.company.name,
           start_date: insuranceDetails.start_date,
           endDate,
-          referenceNumber: Math.floor(
-            100000000 + Math.random() * 900000000
-          ).toString(),
+          referenceNumber: Math.floor(100000000 + Math.random() * 900000000).toString(),
         },
         summaryDetails: {
           subtotal: totalPrice,
           vat: 0.15,
           total: totalPrice * 1.15,
         },
-      };
-      localStorage.setItem("paymentDetails", JSON.stringify(paymentDetails));
-
-      // Get insurance form data
-      const insuranceFormData = JSON.parse(
-        localStorage.getItem("insuranceFormData") || "{}"
-      );
-
-      // Extract needed data
-      const {
-        owner_identity_number,
-        buyer_identity_number,
-        seller_identity_number,
-        documment_owner_full_name: document_owner_full_name,
-        serial_number,
-        customs_code,
-        insurance_purpose,
-      } = insuranceFormData;
-
-      const {
-        estimated_worth,
-        insurance_type,
-        repair_place,
-        start_date,
-        vehicle_use_purpose: vehicule_use_purpose,
-        year,
-      } = insuranceDetails;
-
-      // Format selected features
-      const selected_extra_features = selectedFeatures.map(
-        (index) => offer.extra_features[index].id
-      );
-
-      // Create order data
-      const orderData = {
-        insurance_purpose,
-        insurance_type,
-        document_owner_full_name,
-        owner_identity_number,
-        buyer_identity_number,
-        seller_identity_number,
-        start_date: convertToTimestamp(start_date),
-        vehicule: {
-          serial_number,
-          year: +year,
-          customs_code: customs_code ? customs_code : "غير محدد",
-          vehicule_use_purpose: vehicule_use_purpose
-            ? vehicule_use_purpose
-            : "personal",
-          estimated_worth: +estimated_worth,
-          repair_place,
-        },
-        selected_extra_features,
-      };
-
-      // Create order
-      const order_id = await createOrder(offer.id, orderData);
-      localStorage.setItem("order_id", JSON.stringify(order_id));
+      }
+      localStorage.setItem("paymentDetails", JSON.stringify(paymentDetails))
 
       // Navigate to payment page
+      router.push("/payment")
     } catch (error) {
-      console.error("Error processing offer selection:", error);
-      alert("حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.");
+      console.error("Error processing offer selection:", error)
+      alert("حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.")
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  }, [offer, totalPrice, selectedFeatures, getArabicInsuranceType]);
+  }, [offer, totalPrice, selectedFeatures, getArabicInsuranceType, router])
 
   return (
     <div className="bg-white container mx-auto rounded-xl overflow-hidden border border-gray-100 hover:border-blue-200 transition-all duration-300">
@@ -221,33 +151,25 @@ export default function OfferCard({ offer }: OfferProps) {
 
         {/* Features Section */}
         <div className="w-full lg:w-2/4 p-4 sm:p-6">
-          <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-gray-800 border-b pb-3">
-            المنافع الإضافية
-          </h3>
+          <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-gray-800 border-b pb-3">المنافع الإضافية</h3>
           <div className="space-y-3 sm:space-y-4">
             {/* Feature items with responsive spacing */}
             {offer.extra_features.map((feature, index) => (
               <label
                 key={index}
                 className={`flex items-center p-3 sm:p-4 rounded-lg transition-all duration-200 ${
-                  feature.price === 0
-                    ? "bg-[#ddd]/50 cursor-default"
-                    : "hover:bg-gray-50 cursor-pointer"
+                  feature.price === 0 ? "bg-[#ddd]/50 cursor-default" : "hover:bg-gray-50 cursor-pointer"
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={selectedFeatures.includes(index)}
                   disabled={feature.price === 0}
-                  onChange={(e) =>
-                    handleFeatureSelection(index, e.target.checked)
-                  }
+                  onChange={(e) => handleFeatureSelection(index, e.target.checked)}
                   className="ml-3 sm:ml-4 h-4 sm:h-5 w-4 sm:w-5 text-blue-600"
                 />
                 <div className="flex-1 border-b p-1">
-                  <span className="text-sm sm:text-base text-gray-800 font-medium">
-                    {feature.content}
-                  </span>
+                  <span className="text-sm sm:text-base text-gray-800 font-medium">{feature.content}</span>
                 </div>
                 {feature.price > 0 && (
                   <span className="text-sm sm:text-base text-gray-700 font-bold whitespace-nowrap">
@@ -263,12 +185,8 @@ export default function OfferCard({ offer }: OfferProps) {
         <div className="w-full lg:w-1/4 p-4 sm:p-6 lg:p-8 bg-gradient-to-b from-gray-50 to-white flex flex-col justify-center border-t lg:border-t-0 lg:border-r">
           <div className="text-center space-y-4 sm:space-y-6">
             <div>
-              <span className="block text-xs sm:text-sm text-gray-500 mb-2">
-                السعر النهائي
-              </span>
-              <span className="text-2xl font-bold text-blue-600">
-                {totalPrice.toFixed(2)} ريال
-              </span>
+              <span className="block text-xs sm:text-sm text-gray-500 mb-2">السعر النهائي</span>
+              <span className="text-2xl font-bold text-blue-600">{totalPrice.toFixed(2)} ريال</span>
             </div>
             <button
               onClick={handleOfferSelection}
@@ -288,5 +206,6 @@ export default function OfferCard({ offer }: OfferProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }
+

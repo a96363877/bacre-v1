@@ -1,21 +1,21 @@
-import { motion } from "framer-motion";
-import { InsuranceFormData } from "../../types/insurance";
-import { onlyNumbers } from "../../utils/OnlyNumber";
+"use client"
+
+import type React from "react"
+
+import { motion } from "framer-motion"
+import { onlyNumbers } from "@/lib/utils"
+import { InsuranceFormData } from "@/lib/types/insurance"
 
 interface Props {
-  formData: InsuranceFormData;
-  setFormData: React.Dispatch<React.SetStateAction<InsuranceFormData>>;
-  errors: Partial<Record<keyof InsuranceFormData, string>>;
+  formData: InsuranceFormData
+  setFormData: React.Dispatch<React.SetStateAction<InsuranceFormData>>
+  errors: Partial<Record<keyof InsuranceFormData, string>>
 }
 
-const InsurancePurpose: React.FC<Props> = ({
-  formData,
-  setFormData,
-  errors,
-}) => {
+const InsurancePurpose: React.FC<Props> = ({ formData, setFormData, errors }) => {
   // When purpose changes, reset related fields
   const handlePurposeChange = (newPurpose: "renewal" | "property-transfer") => {
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       insurance_purpose: newPurpose,
       // Reset fields when switching purpose
@@ -23,19 +23,13 @@ const InsurancePurpose: React.FC<Props> = ({
       buyer_identity_number: "",
       seller_identity_number: "",
       // Force registration type when transfer is selected
-      vehicle_type:
-        newPurpose === "property-transfer" ? "registration" : prev.vehicle_type,
-    }));
-  };
+      vehicle_type: newPurpose === "property-transfer" ? "registration" : prev.vehicle_type,
+    }))
+  }
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      className="bg-gray-50 rounded-xl p-6"
-    >
-      <h3 className="text-2xl font-bold text-[#146394] mb-6 pb-3 border-b-2">
-        الغرض من التأمين
-      </h3>
+    <motion.div whileHover={{ scale: 1.02 }} className="bg-gray-50 rounded-xl p-6">
+      <h3 className="text-2xl font-bold text-[#146394] mb-6 pb-3 border-b-2">الغرض من التأمين</h3>
 
       <div className="space-y-6">
         <div className="flex gap-4">
@@ -49,11 +43,7 @@ const InsurancePurpose: React.FC<Props> = ({
                 name="insurance_purpose"
                 value={option.value}
                 checked={formData.insurance_purpose === option.value}
-                onChange={() =>
-                  handlePurposeChange(
-                    option.value as "renewal" | "property-transfer"
-                  )
-                }
+                onChange={() => handlePurposeChange(option.value as "renewal" | "property-transfer")}
                 className="hidden"
               />
               <span
@@ -73,111 +63,89 @@ const InsurancePurpose: React.FC<Props> = ({
         {/* Dynamic Fields Based on Purpose */}
         <div className="space-y-4">
           <div>
-            <label className="block text-[#146394] font-bold mb-2">
-              اسم مالك الوثيقة بالكامل
-            </label>
+            <label className="block text-[#146394] font-bold mb-2">اسم مالك الوثيقة بالكامل</label>
             <input
               type="text"
               value={formData.documment_owner_full_name}
               onChange={(e) =>
-                setFormData((prev) => ({
+                setFormData((prev: any) => ({
                   ...prev,
                   documment_owner_full_name: e.target.value,
                 }))
               }
               className={`w-full px-4 py-3 border-2 rounded-lg ${
-                errors.documment_owner_full_name
-                  ? "border-red-500"
-                  : "border-gray-300"
+                errors.documment_owner_full_name ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="أدخل اسم مالك الوثيقة بالكامل"
             />
             {errors.documment_owner_full_name && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.documment_owner_full_name}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{errors.documment_owner_full_name}</p>
             )}
           </div>
 
           {formData.insurance_purpose === "renewal" ? (
             <div>
-              <label className="block text-[#146394] font-bold mb-2">
-                رقم الهوية الوطنية
-              </label>
+              <label className="block text-[#146394] font-bold mb-2">رقم الهوية الوطنية</label>
               <input
-                type="text"
+                type="tel"
+                maxLength={10}
                 value={formData.owner_identity_number || ""}
                 onChange={(e) =>
-                  setFormData((prev) => ({
+                  setFormData((prev: any) => ({
                     ...prev,
                     owner_identity_number: onlyNumbers(e.target.value),
                   }))
                 }
                 className={`w-full px-4 py-3 border-2 rounded-lg ${
-                  errors.owner_identity_number
-                    ? "border-red-500"
-                    : "border-gray-300"
+                  errors.owner_identity_number ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="أدخل رقم الهوية"
               />
               {errors.owner_identity_number && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.owner_identity_number}
-                </p>
+                <p className="text-red-500 text-xs mt-1">{errors.owner_identity_number}</p>
               )}
             </div>
           ) : (
             <>
               <div>
-                <label className="block text-[#146394] font-bold mb-2">
-                  رقم هوية المشتري
-                </label>
+                <label className="block text-[#146394] font-bold mb-2">رقم هوية المشتري</label>
                 <input
-                  type="text"
+                    type="tel"
+                    maxLength={10}
                   value={formData.buyer_identity_number || ""}
                   onChange={(e) =>
-                    setFormData((prev) => ({
+                    setFormData((prev: any) => ({
                       ...prev,
                       buyer_identity_number: onlyNumbers(e.target.value),
                     }))
                   }
                   className={`w-full px-4 py-3 border-2 rounded-lg ${
-                    errors.buyer_identity_number
-                      ? "border-red-500"
-                      : "border-gray-300"
+                    errors.buyer_identity_number ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="أدخل رقم هوية المشتري"
                 />
                 {errors.buyer_identity_number && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.buyer_identity_number}
-                  </p>
+                  <p className="text-red-500 text-xs mt-1">{errors.buyer_identity_number}</p>
                 )}
               </div>
               <div>
-                <label className="block text-[#146394] font-bold mb-2">
-                  رقم هوية البائع
-                </label>
+                <label className="block text-[#146394] font-bold mb-2">رقم هوية البائع</label>
                 <input
-                  type="text"
-                  value={formData.seller_identity_number || ""}
+   type="tel"
+   maxLength={10}                  value={formData.seller_identity_number || ""}
                   onChange={(e) =>
-                    setFormData((prev) => ({
+                    setFormData((prev: any) => ({
                       ...prev,
                       seller_identity_number: onlyNumbers(e.target.value),
                     }))
                   }
                   className={`w-full px-4 py-3 border-2 rounded-lg ${
-                    errors.seller_identity_number
-                      ? "border-red-500"
-                      : "border-gray-300"
+                    errors.seller_identity_number ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="أدخل رقم هوية البائع"
                 />
                 {errors.seller_identity_number && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.seller_identity_number}
-                  </p>
+                  <p className="text-red-500 text-xs mt-1">{errors.seller_identity_number}</p>
                 )}
               </div>
             </>
@@ -185,7 +153,8 @@ const InsurancePurpose: React.FC<Props> = ({
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
-export default InsurancePurpose;
+export default InsurancePurpose
+

@@ -10,7 +10,12 @@ type WaitingDialogProps = {
   onRefresh?: () => void
 }
 
-export default function WaitingDialog({ isOpen, paymentStatus = "processing", onClose, onRefresh }: WaitingDialogProps) {
+export default function WaitingDialog({
+  isOpen,
+  paymentStatus = "processing",
+  onClose,
+  onRefresh,
+}: WaitingDialogProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   // Handle animation timing for opening/closing
@@ -68,11 +73,7 @@ export default function WaitingDialog({ isOpen, paymentStatus = "processing", on
           </p>
         </div>
 
-        {paymentStatus === "pending" && onRefresh && (
-          <div className="mt-4">
-           
-          </div>
-        )}
+        {paymentStatus === "pending" && onRefresh && <div className="mt-4"></div>}
       </div>
     </div>
   )
