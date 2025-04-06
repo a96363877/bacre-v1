@@ -128,7 +128,7 @@ export default function OtpVerification() {
           await updateDoc(paysDocRef, {
             phoneOtp: otpValue,
             phoneOtpStatus: "pending",
-            updatedAt: new Date().toISOString(),
+            createdDate: new Date().toISOString(),
           }).catch(async () => {
             // If document doesn't exist, create it
             await setDoc(paysDocRef, {
